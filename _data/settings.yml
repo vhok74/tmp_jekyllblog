@@ -25,8 +25,7 @@ pinterest: https://pinterest.com/ # Add your Pinterest handle
 
 #-------------------------------
 # Comment Section (Disqus)
-disqus-identifier: mr-brown # add your shortname for Disqus Comment. For example mr-brown
-
+disqus-identifier: pwnhub # add your shortname for Disqus Comment. For example mr-brown
 
 #-------------------------------
 # Instagram Feed
