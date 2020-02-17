@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="140" height="33" viewBox="0 0 140 33">
+  <defs>
+    <style>
+      .cls-1 {
+        font-size: 27px;
+      }
+
+      .cls-1, .cls-3 {
+        font-family: YDIYGO360;
+      }
+
+      .cls-2 {
+        fill: #31004a;
+        filter: url(#filter);
+      }
+
+      .cls-3 {
+        font-size: 26px;
+        fill: #fff;
+      }
+    </style>
+    <filter id="filter" x="4" y="4" width="27" height="26" filterUnits="userSpaceOnUse">
+      <feFlood result="flood" flood-color="#55557d"/>
+      <feComposite result="composite" operator="in" in2="SourceGraphic"/>
+      <feBlend result="blend" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+  <text id="JaHo" class="cls-1" x="37.582" y="25.2">JaHo</text>
+  <rect id="사각형_1" data-name="사각형 1" class="cls-2" x="4" y="4" width="27" height="26"/>
+  <text id="J" class="cls-3" x="11.25" y="24.25">J</text>
+</svg>
