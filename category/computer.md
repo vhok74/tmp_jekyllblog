@@ -1,5 +1,5 @@
 ---
 layout: category
-title: Computer
+tags: Computer
 ---
 computer

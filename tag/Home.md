@@ -1,4 +1,4 @@
 ---
 layout: tag_page
-title: Resources
+tags: [Home]
 ---
