@@ -17,13 +17,7 @@
           {% if post.tags.size >= 1 %}
             <div class="article-tags__box">
               {% for tag in post.tags %}
-                {% for data_tag in site.data.tags %}
-                  {% if data_tag.slug == tag %}
-                    {% assgin tag = data_tag %}
-                  {% endif %}
-                {% endfor %}
-                <a href="{{ site.baseurl }}/tags/{{ tag }}" class="article__tag">{{ tag }}</a>
-                {% endfor %}
+                <a href="{{ site.baseurl }}/tags/{{ tag }}" class="article__tag" style="pointer-events: none;">{{ tag }}</a>
               {% endfor %}
             </div>
           {% else %}
