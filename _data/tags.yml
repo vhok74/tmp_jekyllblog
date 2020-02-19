@@ -1,0 +1,14 @@
+ - slug: resources
+   name: Resources
+
+ - slug: home
+   name: Home
+
+ - slug: jekyll
+   name: Jekyll
+
+ - slug: style
+   name: Style
+
+ - slug: life
+   name: Life
