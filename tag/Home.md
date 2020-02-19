@@ -1,4 +1,4 @@
 ---
 layout: tag_page
-title: life
+title: Home
 ---
