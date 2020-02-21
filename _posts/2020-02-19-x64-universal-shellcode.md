@@ -26,20 +26,30 @@ categories: [Computer]
 
 32bit 환경으로 책에 나온 예제를 1차적으로 공부하여 부족한 부분을 공부하고, 로컬 환경(x64)에서 실제 쉘코드 작성을 진행하였다. 32bit에서는 인라인 어셈블리로 작성가능했지만, 64bit에서는 불가능하다. 따라서 masm으로 따로 파일을 만들어서 cpp 파일에 링킹 시키는 과정으로 작성해야한다
 
-1. 프로젝트 생성 - 콘솔 앱<br>
-2. 구성 관리자 변경 - 빌드 창 선택 - 구성관리자 선택
-![]({{ site.baseurl }}/images/x64_shellcode/1.png)
-3. 프로젝트 우클릭 - 빌드 종속성 - 사용자 지정 빌드 - masm 체크
-    ![]({{ site.baseurl }}/images/x64_shellcode/2.png)
-    ![]({{ site.baseurl }}/images/x64_shellcode/3.png)
-4. 이름.asm 파일 생성 - 해당 파일 우클릭 - 사진처럼 설정
-    ![]({{ site.baseurl }}/images/x64_shellcode/4.png)
-5. asm 파일에서 함수명 지정
-    ![]({{ site.baseurl }}/images/x64_shellcode/5.png)
+1. 프로젝트 생성 - 콘솔 앱<br>  
 
+2. 구성 관리자 변경 - 빌드 창 선택 - 구성관리자 선택
+![]({{ site.baseurl }}/images/x64_shellcode/1.png)  
+    
+    
+3. 프로젝트 우클릭 - 빌드 종속성 - 사용자 지정 빌드 - masm 체크
+    ![]({{ site.baseurl }}/images/x64_shellcode/2.png)  
+      
+    ![]({{ site.baseurl }}/images/x64_shellcode/3.png)  
+        
+        
+4. 이름.asm 파일 생성 - 해당 파일 우클릭 - 사진처럼 설정
+    ![]({{ site.baseurl }}/images/x64_shellcode/4.png)  
+         
+         
+5. asm 파일에서 함수명 지정
+    ![]({{ site.baseurl }}/images/x64_shellcode/5.png)  
+    
+    
 6. cpp 파일에서 해당 asm 링킹하여 사용
     ![]({{ site.baseurl }}/images/x64_shellcode/6.png)
-
+    
+    
 - **32bit**  - 분석용
     1. 가상머신 : Virtual box
     2. 구동 OS : Window 7 home
@@ -62,13 +72,15 @@ categories: [Computer]
 
 리눅스의 경우 system 함수를 바로 사용하여 원하는 기능을 수행하도록 쉘코드를 작성하면 되지만, 윈도우는 그렇게 간단하게 쉘코드를 작성할 수 없다.  여러가지 dll들이 링킹이 되고, 해당 dll안에 특정 함수를 실행시키 위해서는 이러한 과정을 다 직접 구현을 해줘야 하기 때문이다.
 
-해당 분석 과정은 책에서 설명하는 **32bit** 기준과 **64bit**에서 다른 부분의 차이점을 위주로 설명을 할 것이다. 특히 쉘코드를 작성하면서 **64bit** 환경에서 시행착오를 한 부분을 위주로 작성을 할 것이다.
-<br>
+해당 분석 과정은 책에서 설명하는 **32bit** 기준과 **64bit**에서 다른 부분의 차이점을 위주로 설명을 할 것이다. 특히 쉘코드를 작성하면서 **64bit** 환경에서 시행착오를 한 부분을 위주로 작성을 할 것이다.    
+<br><br>
+  
 ## 3.1 Universal 쉘코드
 
 프로세스에서 함수의 주소 값을 구하기 위해서 dll의 시작 주소 값과 dll 시작 주소부터 함수까지의 offset을 알아야 한다. 이 주소 값을 실행 중에 스스로 구해서 동적으로 입력해 주는 것이 바로 Universal 쉘코드의 목적이다
 
-Universal 쉘코드의 원리를 이해하고 작성하기 위해서는 PEB, TEB, PE Header, Export Table, Export Name Table  등 몇 가지 추가적인 배경 지식이 필요하다
+Universal 쉘코드의 원리를 이해하고 작성하기 위해서는 PEB, TEB, PE Header, Export Table, Export Name Table  등 몇 가지 추가적인 배경 지식이 필요하다  
+  
 <br>
 ### 1) TEB(Thread Environment Block)
 
@@ -77,35 +89,34 @@ TEB는 현재 실행되고 있는 쓰레드에 대한 정보를 담고 있는 �
 실제로 FS나 GS 레지스터에 TEB 주소값이 바로 들어있는 것은 아니며, TEB 주소를 가지고 있는 segment Descriptor Table의 Index 값을 가지고 있다고 한다
 
 - **32bit**   
-    ![]({{ site.baseurl }}/images/x64_shellcode/7.png)   
-    32bit 환경에서 TEB 구조체에 저장된 PEB 주소
+    ![]({{ site.baseurl }}/images/x64_shellcode/7.png)
+*32bit 환경에서 TEB 구조체에 저장된 PEB 주소*   
 
 - **64bit**   
-    ![]({{ site.baseurl }}/images/x64_shellcode/8.png)   
-    64bit 환경에서 TEB 구조체에 저장된 PEB 주소
+    ![]({{ site.baseurl }}/images/x64_shellcode/8.png)
+*64bit 환경에서 TEB 구조체에 저장된 PEB 주소*
 
 windbg로 teb 구조체의 값을 직접 확인해 보았다. FS레지스터와 GS 레지스터를 이용하여 TEB에 접근할수 있고, TEB를 이용하여 PEB의 주소값을 알 수 있다.
 
-32bit와 64bit의 차이점은 PEB의 주소값을 가지고 있는 ProcessEnviromentBlock 멤버변수가 위치하는 오프셋이 다르다는 점을 인지하고 있어야 한다.
+32bit와 64bit의 차이점은 PEB의 주소값을 가지고 있는 ProcessEnviromentBlock 멤버변수가 위치하는 오프셋이 다르다는 점을 인지하고 있어야 한다.  
 
 <br>
-
 ### 2) PEB(Process Enviroment Block)
 
 PEB는 실행 중인 프로세스에 대한 정보를 담아두는 구조체이다. 프로세스와 관련된 다양한 정보들이 저장되어 있다. 이들 정보 중에는 프로세스에 로드 된 PE Image(EXE, DLL 등)에 대한 정보도 기록되어 있는데, 바로 이 정보를 이용하여 원하는 DLL 안에 존재하는 함수의 주소를 구할 것이다
 
 - **32bit**   
-    ![]({{ site.baseurl }}/images/x64_shellcode/9.png)   
-    PEB 구조체
-
+    ![]({{ site.baseurl }}/images/x64_shellcode/9.png)
+*PEB 구조체*   
+  
 - **64bit**   
-    ![]({{ site.baseurl }}/images/x64_shellcode/10.png)   
-    PEB 구조체
+    ![]({{ site.baseurl }}/images/x64_shellcode/10.png)
+*PEB 구조체*
 
 **Ldr 멤벼변수**의 위치 역시 32bit에서는 **0xc** 위치이고,  64bit에서는 **0x18** 위치로 차이가 있다.  요약해서 말하자면, Ldr이란 프로세스에 로드된 모듈에 대한 정보를 제공하는 PEB_LDR_DATA 구조체를 가리키는 포인터이다. **_PEB_LDR_DATA** 구조체를 살펴보자
 
+  
 <br>
-
 ### 3)PEB_LDR_DATA
 
 PEB_LDR_DATA는 아래과 같은 구조로 구성되어 있는 구조체이다. 중간 부분에 **_LIST_ENTRY** 형 멤버변수를 3개 가지고 있는 것을 볼 수 있는데, 이 _LDR_ENTRY 는 더블 링크드 리스트 구조로 되어있는 구조체이다.
@@ -122,8 +133,7 @@ InLoadOrderModulList, InMemoryOrderModulList, InInitalizationOrderMoulduleLIst �
 
 (사진은 32bit 기준으로 설명되었다)   
     ![]({{ site.baseurl }}/images/x64_shellcode/13.png)
-
-peb_ldr_data 구조도 / 출처 : [https://5kyc1ad.tistory.com/328](https://5kyc1ad.tistory.com/328)
+*peb_ldr_data 구조도 / 출처 : [https://5kyc1ad.tistory.com/328](https://5kyc1ad.tistory.com/328)*
 
 64bit도 오프셋을 제외하곤 차이가 없으므로 위 사진으로 설명을 하겠다.  맨처음 TEB를 이용하여 PEB 주소를 확인하였다. 그리고 PEB 구조체의 LDR 멤버변수를 확인하여 PEB_LDR_DATA에 접근할 수 있었다.
 
@@ -135,8 +145,7 @@ peb_ldr_data 구조도 / 출처 : [https://5kyc1ad.tistory.com/328](https://5kyc
 
 따라서 이 더블 링크드리스트를 순회하여 원하는 dll을 확인 가능하고, 해당 구조체에서 DLLbase 주소 즉, DLL의 시작주소를 알 수 있는 것이다. 그렇다면 실제로 kernel32.dll 모듈의 base 주소를 확인 해보자.
     ![]({{ site.baseurl }}/images/x64_shellcode/14.png)
-
-peb_ldr_data 구조체의 InLoadOrderModuleList 의 Flink와 Blink
+*peb_ldr_data 구조체의 InLoadOrderModuleList 의 Flink와 Blink*
 
 해당 PEB_LDR_DATA 구조체에서 InLoadOrderModuleList를 봐보자. Flink와 Blink를 확인 할 수가 있는데, 여기서 Flink는 ldr_data_table_entry 구조체를 가리키고 있는 주소이다. Flink를 확인해보자.
 
@@ -146,8 +155,7 @@ peb_ldr_data 구조체의 InLoadOrderModuleList 의 Flink와 Blink
 
 근데 여기서 궁금한 점이 생겼다. peb_ldr_data 구조체에서 Inorder.. 리스트의 Flink는 실행파일 그 자체에 대한 정보가 처음 리스트의 정보로 나온다고 했는데 그럼 Blink에는 무엇이 있을까라는 의문점이 들었다. 그래서 직접 한번 값을 찍어보았다.
     ![]({{ site.baseurl }}/images/x64_shellcode/16.png)
-
-peb_ldr_data의 InOrder...의 Blink 주소가 가리키는 ldr_data_table_entry
+*peb_ldr_data의 InOrder...의 Blink 주소가 가리키는 ldr_data_table_entry*
 
 해당 blink는 ***"ntmarta.dll"*** 모듈에 대한 LDR_DATA_TABLE_ENTRY 정보를 담고 있었다. 결론적이로 해당 모듈은 Flink를 따라가면서 마지막에 로드된 모듈이다. 해당 모듈이 나오고 다시 test3.exe가 나오는 것을 확인하였다.
 
@@ -158,10 +166,8 @@ peb_ldr_data의 InOrder...의 Blink 주소가 가리키는 ldr_data_table_entry
 
 요론식으로 말이다. 다시 본론으로 돌아가서 Flink를 계속 따라가다가 보면 Kernel32.dll 의 정보를 확인할 수 있었다.
 
-![]({{ site.baseurl }}/images/x64_shellcode/18.png)   
-
-
-Kernel32.dll의 Ldr_data_table_entry 구조체
+![]({{ site.baseurl }}/images/x64_shellcode/18.png)
+*Kernel32.dll의 Ldr_data_table_entry 구조체*
 
 이렇게 우리가 원하는 Kernel32.dll 모듈의 DllBase 주소를 확인할 수 있다. 이 주소를 base로 하여 고정적 함수의 offset을 더하면 해당 dll 안에 속해있는 특정 함수의 주소를 구할 수 있다.
 
@@ -203,8 +209,7 @@ EXPORT_DIRECOTRY에서 가장 중요한 멤버변수는 3가지이다<br>
 
 <br>
 
-![]({{ site.baseurl }}/images/x64_shellcode/20.png)  
-단계별 Export 함수 주소 확인 과정
+![]({{ site.baseurl }}/images/x64_shellcode/20.png)*단계별 Export 함수 주소 확인 과정*
 
 <br>
 
@@ -213,7 +218,7 @@ EXPORT_DIRECOTRY에서 가장 중요한 멤버변수는 3가지이다<br>
 위 그림에서 Hello 함수는 3번째 위치 즉 인덱스 2에 위치해 있다. 그렇다면 AddressOfNameOrdinals의 2번째 인덱스에 들어 가있는 값을 확인해야한다. 2번째 인덱스에 들어있는 값은 2이다. 
 
 이제 마지막으로 AddressOfFunctions(EAT)의 2번째 인덱스에 들어있는 값을 확인하자. 그림상 0x4aa5으로 확인이 되는데 이 값이 바로 base 주소 부터 Hello 함수가 떨어져 있는 오프셋을 뜻한다. 그렇다면 Hello 함수는 base+0x4aa5 의 주소로 접근하면 끝이다. 실제 디버거 상에서 확인해보자.
-
+```
     0:004> dt nt!_image_optional_header64 00007fff`c3760000+0xe8+0x18
     ntdll!_IMAGE_OPTIONAL_HEADER64
        +0x000 Magic            : 0x20b
@@ -245,11 +250,17 @@ EXPORT_DIRECOTRY에서 가장 중요한 멤버변수는 3가지이다<br>
        +0x060 SizeOfHeapCommit : 0x1000
        +0x068 LoaderFlags      : 0
        +0x06c NumberOfRvaAndSizes : 0x10
-       **+0x070 DataDirectory    : [16] _IMAGE_DATA_DIRECTORY**
+       **+0x070 DataDirectory    : [16] _IMAGE_DATA_DIRECTORY**  
+```   
 
-base 주소에서 NT 헤더의 시작 부분 오프셋인 0xe8 + optional header의 오프셋 0x18을 더한 주소값을 이용하여 ***image_optional_header64*** 구조체의 값을 확인해 보았다.  이러한 값들은 32bit과 64bit에서 다르므로 잘 확인하여 더해줘야한다. 쨋든 맨 마지막 DataDirectory의 0번째 인덱스에 Export Directory 정보가 담겨져 있다. 
+<br>
+base 주소에서 NT 헤더의 시작 부분 오프셋인 0xe8 + optional header의 오프셋 0x18을 더한 주소값을 이용하여 ***image_optional_header64*** 구조체의 값을 확인해 보았다.  이러한 값들은 32bit과 64bit에서 다르므로 잘 확인하여 더해줘야한다. 쨋든 맨 마지막 DataDirectory의 0번째 인덱스에 Export Directory 정보가 담겨져 있다.  
+  
+
 ![]({{ site.baseurl }}/images/x64_shellcode/21.png)  
 base주소에 저 0x8ec80 주소를 더하면 ***Image_export_directory***의 실제 주소를 알 수 있다
+<br>
+<br>
 ![]({{ site.baseurl }}/images/x64_shellcode/22.png)  
 
 - dd base+0x8ec80 명령어 출력된 4바이트 데이터들과 **CFF Explorer**에서 Export **Directory** 값을 매칭시켜보면 동일하게 잘 출력된 것을 알 수 있다. **CFF** **Explorer**에서는 **Kernel32**.dll을 올려서 확인한 결과이다
@@ -630,4 +641,4 @@ EX) hash(WinExec) = W + i + n + E + x + e + c
 
 # 4. 결론
 
-윈도우와 관련하여 공부는 이번이 처음이였다. 그리고 어셈블리어를 이용하여 코딩도 해보고 이런적이 없었는데 이번을 통해 많은 공부가 되었다. 앞으로 공부할 때도 하나를 알더라도 완벽히 이해하고 넘어가는게 좋은 것같다. 끝
+윈도우와 관련하여 공부는 이번이 처음이였다. 그리고 어셈블리어를 이용하여 코딩도 해보고 이런적이 없었는데 이번을 통해 많은 공부가 되었다. 앞으로 공부할 때도 하나를 알더라도 완벽히 이해하고 넘어가는게 좋은 것같다. 끝  
