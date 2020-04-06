@@ -1,5 +1,6 @@
 ---
-layout: default
+layout: tag_page
+title : Home
 ---
 
 <div class="arhive-head">
