@@ -8,8 +8,7 @@ layout: default
   </div>
 </div>
 {% for post in site.posts %}
-{{post.tags}}
-{{page.tag}}
+{% if post.tags contains page.tag %}
   {% include article-content.html %}
-
+{% endif %}
 {% endfor %}
