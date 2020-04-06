@@ -1,4 +1,4 @@
 ---
 layout: tag_page
-tag: pwnable
+tag: Pwnable
 ---
