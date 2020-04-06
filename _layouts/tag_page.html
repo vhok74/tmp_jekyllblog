@@ -7,8 +7,11 @@ layout: default
     <h1 class="archive-title"><span>Category : [{{ page.tag }}]</span></h1>
   </div>
 </div>
-{{page.posts}}
+{{page}}z
+{{page.collection}}
+z
 {% for post in page.posts %}
+{{post}}
 {% if site.data.tags contains page.tag %}
   {% include article-content.html %}
 {% endif %}
