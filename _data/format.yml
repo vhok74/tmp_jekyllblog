@@ -2,5 +2,5 @@ resources: Resources
 jekyll: Jekyll
 style: Style
 life: Life
-Windows: Windows
+windows: Windows
 pwnable: Pwnable
