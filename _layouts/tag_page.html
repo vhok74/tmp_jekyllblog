@@ -4,12 +4,11 @@ layout: default
 
 <div class="arhive-head">
   <div class="container">
-    <h1 class="archive-title"><span>Category : [{{ page.tag }}]</span></h1>
+    <h1 class="archive-title"><span>Category : {{ page.tag }}</span></h1>
   </div>
 </div>
-{{page}}z
-{{page.collection}}
-z
-{% for post in page.posts %}
+{% for post in site.posts %}
+{% if post.tags contains page.tag %}
   {% include article-content.html %}
+{% endif %}
 {% endfor %}
