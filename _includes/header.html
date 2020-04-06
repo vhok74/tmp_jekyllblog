@@ -33,7 +33,7 @@
               {% if page.layout == 'category' %}
               <li class="nav__item">
                 {% if page.title == 'tag' %}
-                <a href="{{site.baseurl}}tag" class="nav__link">{{ page.title }}</a>
+                <a href="{{site.url}}/tag" class="nav__link">{{ page.title }}</a>
                 {% endif %}
                 {% if page.title != 'tag' %}
                 <a href="{{site.baseurl}}{{ page.url }}" class="nav__link">{{ page.title }}</a>
