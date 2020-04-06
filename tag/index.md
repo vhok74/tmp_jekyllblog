@@ -3,12 +3,3 @@ layout: tag_page
 title : Home
 ---
 
-<div class="arhive-head">
-  <div class="container">
-    <h1 class="archive-title"><span>Category : [{{ page.tag }}]</span></h1>
-  </div>
-</div>
-
-{% for post in page.posts %}
-  {% include article-content.html %}
-{% endfor %}
