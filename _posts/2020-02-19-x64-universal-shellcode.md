@@ -3,7 +3,7 @@ layout: post
 title:  "window x64 환경  universal shellcode 구현"
 date:   2020-02-19 19:45:55
 image:  shellcode.png
-tags:   [window]
+tags:   [Window]
 categories: [Computer]
 ---
 **목차**   

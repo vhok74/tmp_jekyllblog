@@ -32,7 +32,7 @@
   .post__author {
     margin-right: 10px;
     font-weight: 700;
-    
+
     .author-name {
       color: $gray;
       border-bottom: 1px solid transparent;
@@ -43,30 +43,31 @@
   }
 
   .post__tags {
-   .post__tags-tag {
-     position: relative;
-     padding-left: 15px;
-     font-weight: 700;
-     &:before {
-       content: "";
-       position: absolute;
-       top: 50%;
-       left: 0;
-       transform: translateY(-50%);
-       width: 5px;
-       height: 5px;
-       border-radius: 50%;
-       background: $dark;
-     }
-   } 
+    .post__tags-tag {
+      position: relative;
+      padding-left: 15px;
+      font-weight: 700;
+      &:before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: $dark;
+      }
+    }
   }
 }
 
 .post-image {
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: $light-gray;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: $light-gray;
+  height: 400px;
   &:after {
     content: "";
     display: table;
@@ -80,7 +81,7 @@
   margin: 80px auto;
 
   &.post-no-image {
-    margin: 0 auto 80px; 
+    margin: 0 auto 80px;
   }
 
   @media only screen and (max-width: $mobile) {
@@ -142,6 +143,9 @@
     }
 
     .post__nav__image {
+      height: 50%;
+      width: 90%;
+      margin: auto;
       display: block;
       margin-bottom: 40px;
       background-position: center;
@@ -167,7 +171,7 @@
       text-transform: uppercase;
       letter-spacing: 2px;
       text-align: center;
-      
+
       a {
         display: inline-block;
         max-width: 250px;
@@ -202,7 +206,7 @@
 
   @media only screen and (max-width: $tablet) {
     flex-wrap: wrap;
-    
+
     .prev,
     .next {
       flex: 1 0 100%;
