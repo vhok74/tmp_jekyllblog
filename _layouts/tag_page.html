@@ -11,8 +11,5 @@ layout: default
 {{page.collection}}
 z
 {% for post in page.posts %}
-{{post}}
-{% if site.data.tags contains page.tag %}
   {% include article-content.html %}
-{% endif %}
 {% endfor %}
