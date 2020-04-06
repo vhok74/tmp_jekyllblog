@@ -6,11 +6,11 @@
 
         <div class="logo">
           <a class="logo__link" href="{{site.baseurl}}/">
-          {%if site.data.settings.logo %}
+            {%if site.data.settings.logo %}
             <img class="logo__image" src="{{ site.baseurl }}/images/{{ site.data.settings.logo }}" alt="{{ site.data.settings.title }}">
-          {% else %}
+            {% else %}
             {{ site.data.settings.title }}
-          {% endif %}
+            {% endif %}
           </a>
         </div>
 
@@ -28,15 +28,20 @@
                 <a href="{{site.baseurl}}/" class="nav__link">Home</a>
               </li>
               {% for page in site.pages %}
-                {% unless page.name == 'tags.html' or page.name == '404.html' %}
+              {% unless page.name == 'tags.html' or page.name == '404.html' %}
               {% if page.title %}
-                {% if page.layout == 'category' %}
-                <li class="nav__item">
-                  <a href="{{site.baseurl}}{{ page.url }}" class="nav__link">{{ page.title }}</a>
-                </li>
+              {% if page.layout == 'category' %}
+              <li class="nav__item">
+                {% if page.title == 'tag' %}
+                <a href="{{site.baseurl}}tag" class="nav__link">{{ page.title }}</a>
                 {% endif %}
+                {% if page.title != 'tag' %}
+                <a href="{{site.baseurl}}{{ page.url }}" class="nav__link">{{ page.title }}</a>
+                {% endif %}
+              </li>
               {% endif %}
-                {% endunless %}
+              {% endif %}
+              {% endunless %}
               {% endfor %}
             </ul>
 
