@@ -1,4 +1,4 @@
 ---
 layout: tag_page
-tag: resource
+tag: Resources
 ---
