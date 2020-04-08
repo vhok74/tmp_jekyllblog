@@ -4,6 +4,9 @@ url: "https://vhok74.github.io" # the base hostname & protocol for your site, e.
 
 # Build settings
 markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
 permalink: pretty
 plugins:
   - jekyll-paginate

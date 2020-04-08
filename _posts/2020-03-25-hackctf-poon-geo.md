@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF 풍수지리설 write-up"
 date:   2020-03-25 19:45:55
 image:  hackctf_poon_geo.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -19,14 +19,14 @@ Tags: report
 
 **1) mitigation 확인**
 
-![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF/Untitled.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_foon/Untitled.png)
 
 카나리와 NX 비트가 걸려있다.
 
 
 **2) 문제 확인**
 
-![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF/Untitled%201.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_foon/Untitled%201.png)
 
 각 메뉴가 출력되고 고르라고 나온다
 
@@ -204,7 +204,7 @@ Tags: report
 
 현재 add_location() 함수은 다음과 같이 동작한다
 
-![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF/Untitled%202.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_foon/Untitled%202.png)
 
 S는 Text를 담는 영역, V2는 desc영역이다.
 
@@ -220,7 +220,7 @@ S는 Text를 담는 영역, V2는 desc영역이다.
 
 그다음 add_location 함수를 한번더 호출하여 desc size를 입력할때 0x80를 주게된다면, unsorted bin에 있는 청크를 S_3에 재할당해주고, V2_3는 고정크기 0x80이므로 순차적으로 V2_2 청크 아래에 할당해줄 것이다.
 
-![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF/Untitled%203.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_foon/Untitled%203.png)
 
 - index 0, 1, 2 중에서 0이 free되면 store[0]은 0으로 초기화 된다
 - 그리고 처음에 S영역을 malloc 받는데, 0x80을 요청했으므로 unsorted bin에 들어있는 0x80크기의 V2_0 영역을 재할당해준다. 따라서 기존 V2_0 영역이 V2_3으로 덮힌다
@@ -228,7 +228,7 @@ S는 Text를 담는 영역, V2는 desc영역이다.
 
 이렇게 되면 처음에 S_3 영역이 0x80 동일크기이기 때문에 V2_0에 들어간다. 그리고, text size를 입력할때 0x80보다 크게 입력을 해도, update_desc의 조건문에 만족하지 않게 되어 index_1, index_2 영역을 heap overflow를 이용하여 덮을 수 있다.
 
-![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF/Untitled%204.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_foon/Untitled%204.png)
 
 이렇게 heap의 layout을 조정하여 조지는 방법을 heap fengshui 라고 한다
 

@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF RTL World write-up"
 date:   2020-01-08 19:45:55
 image:  hackctfrtl.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 

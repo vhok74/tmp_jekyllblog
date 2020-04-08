@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF World Best Encryption Tool write-up"
 date:   2020-03-16 19:45:55
 image:  hackctf_encryption.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 

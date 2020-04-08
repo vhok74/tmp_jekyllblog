@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF x64 Buffer Overflow write-up"
 date:   2020-01-04 19:45:55
 image:  hackctf_x64_buf.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -41,14 +41,16 @@ scanf를 이용하여 bof가 가능 할 것으로 보이는데, 보호기법때�
 
 sfp까지의 거리가 272(0x110)이므로 ret 까지의 거리는 +8 인 280바이트이다
 
+
+- **callmeMaybe 함수 주소**  
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20x64%20Buffer%20Overflow/Untitled%205.png)
 
-                    **callmeMaybe 함수 주소** 
+<br>
 
+- **익스 코드**  
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20x64%20Buffer%20Overflow/Untitled%206.png)
 
-                                    익스 코드
-
+<br>
 ### 4. 몰랐던 개념
 
 이번 문제는 딱히 없었다.

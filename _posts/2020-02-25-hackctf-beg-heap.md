@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF beginner heap write-up"
 date:   2020-02-25 19:45:55
 image:  hackctf_beginner_heap.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -25,7 +25,7 @@ PIE가 걸려있지 않기 때문에 got overwrite가 가능할 것이다
 
 **2) 문제 확인**
 
-![]({{ site.baseurl }}/images/write-up/HackCTF/(HackCTF%20Beginner_Heap/Untitled%201.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20Beginner_Heap/Untitled%201.png)
 
 바이너리를 실행시키면 아무것도 뜨지 않고 바로 입력을 받는다. 총 2번 입력을 받고 바로 종료가 된다. 문제만 봐서는 어떤 동작을 하는 프로그램인 파악이 안가기 때문에 아이다로 코드를 한번 봐보자
 

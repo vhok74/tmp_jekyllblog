@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF 내 버퍼가 흘러넘친다!! write-up"
 date:   2020-01-04 19:45:55
 image:  hackctf_mybuf.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 

@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF childfsb write-up"
 date:   2020-03-23 19:45:55
 image:  hackctf_childfsb.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 

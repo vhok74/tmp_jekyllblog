@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF babyfsb write-up"
 date:   2020-03-20 19:45:55
 image:  hackctf_babyfsb.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -35,7 +35,7 @@ hello 라는 문자열이 출력되고 입력할수 있는 공간이 나온다. 
 
 **3) 코드흐름 파악**
 
-![]({{ site.baseurl }}/images/write-up/HackCTF/(HackCTF%20babyfsb/Untitled%202.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20babyfsb/Untitled%202.png)
 
 read로 0x40 만큼 입력을 받는다. ret 을 덮을 수 없는 사이즈이다.
 

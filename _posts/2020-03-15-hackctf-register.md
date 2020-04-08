@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF register write-up"
 date:   2020-03-15 19:45:55
 image:  hackctf_register.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 

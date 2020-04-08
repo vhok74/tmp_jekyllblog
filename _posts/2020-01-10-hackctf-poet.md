@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF poet write-up"
 date:   2020-01-10 19:45:55
 image:  hackctf_poet.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -27,26 +27,24 @@ NX 비트가 걸려있다.  따라서 메모리 영역의 쓰기 권한이 없�
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20poet/Untitled%202.png)
 
 멀 입력하라고 나온다. 문제로 봤을때 1000000점을 획득해야 되는 것 같다
-
+- **<main>**  
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20poet/Untitled%203.png)
 
-                                   <main>
-
+- **<get_poem>**  
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20poet/Untitled%204.png)
 
-                               <get_poem()>
 
 메인 함수를 보면 while문 안에 get_poem(), get_author(), rate_poem() 함수가 있다.
 
 get_poem 함수에서 처음 입력을 받게 되고, poem 이라는 변수에 저장을 하게 된다. poem 변수는 전역변수인 듯 하다
 
+
+- **<rate_poem()>**  
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20poet/Untitled%205.png)
 
-                                <rate_poem()>
-
+- **<get_author>**  
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20poet/Untitled%206.png)
 
-                                <get_author>
 
 get_author 함수에서 두번째로 입력을 받는다. unk_6024A0 이라는 변수에 입력을 받는데, 이역시 전역변수이다
 

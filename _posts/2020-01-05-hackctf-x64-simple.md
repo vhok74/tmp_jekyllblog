@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF x64 Simple size BOF write-up"
 date:   2020-01-05 19:45:55
 image:  hackctf_x64simple.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 

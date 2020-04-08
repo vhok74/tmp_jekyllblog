@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF you are silver write-up"
 date:   2020-02-03 19:45:55
 image:  hackctf_silver.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 # [HackCTF] you are silver

@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF Unexploitable #1 write-up"
 date:   2020-02-03 19:45:55
 image:  hackctf_unex1.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 # [HackCTF] Unexploitable #1

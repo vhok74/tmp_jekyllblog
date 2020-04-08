@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF basic_fsb write-up"
 date:   2020-01-04 19:45:55
 image:  hackctf_basic_fsb.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -19,16 +19,15 @@ categories: [Write-up]
 
 이것만 봐서는 어떠한 동작을 하는 코드인지 모르기 때문에 아이다를 이용하여 바이너리를 뜯어보았다.
 
+- main 문  
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20Basic_FSB/Untitled%202.png)
-
-                                    main 문
-
+<br>
+- vuln() 함수  
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20Basic_FSB/Untitled%203.png)
 
-                                    vuln() 함수
 
-메인에는 별 다른 내용이 없다. 하지만 vuln() 함수가 있어서 해당 부분을 확인해 보았다. snprintf와 printf 함수에서 서식문자를 지정해주지 않고 format 변수에 바로 때려박는 것을 확인 할 수 있다.
-
+메인에는 별 다른 내용이 없다. 하지만 vuln() 함수가 있어서 해당 부분을 확인해 보았다. snprintf와 printf 함수에서 서식문자를 지정해주지 않고 format 변수에 바로 때려박는 것을 확인 할 수 있다.  
+<br>
 ### 2. 접근방법
 
 fgets 함수에서 s 변수에 값을 넣고, snprintf 함수를 이용하여 s에 저장된 값을 format에 집어 넣는다. 9번째 라인의 printf 함수에서 포맷 스트링 공격이 가능 하다는 것이 확인된다. 또한 got 오버라이트를 통해 printf가 아닌 다른 함수의 실행이 가능하다.

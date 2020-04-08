@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF ezshell write-up"
 date:   2020-03-22 19:45:55
 image:  hackctf_ezshell.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 

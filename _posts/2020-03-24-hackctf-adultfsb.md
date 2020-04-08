@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF adultfsb write-up"
 date:   2020-03-24 19:45:55
 image:  hackctf_adultfsb.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -53,16 +53,24 @@ exit 코드를 분석할 필요가 있는데 결로적으로 exit 내부에서 �
 
 1. **exit.c 소스코드 간단분석**
 
-        ..
-        void
-        exit (int status)
-        {
-          __run_exit_handlers (status, &__exit_funcs, true, true);
-        }
-        ..
+``` c
+    ..
+    void
+    exit (int status)
+    {
+      __run_exit_handlers (status, &__exit_funcs, true, true);
+    }
+    ..
+``` 
+    
+   
 
     - exit함수가 호출되면 내부에서 __run_exit_handlers 함수를 호출함
 
+
+
+    
+    
         __run_exit_handlers (int status, struct exit_function_list **listp,
                              bool run_list_atexit, bool run_dtors)
         {
@@ -93,6 +101,8 @@ exit 코드를 분석할 필요가 있는데 결로적으로 exit 내부에서 �
               **while (cur->idx > 0) -------------> 2**
                 {
         ...
+   ---  
+
 
     - 첫번째 while문으로 들어온다. exit_function_list 구조체의 cur포인터변수를 하나 선언하고 두번째 while에서 cur→idx가 0보다 큰지 작은지 검사한다.
     - 해당 조건에 만족하면 내부적으로 복잡한 로직이 실행되는데 이는 free함수가 실행되는 부분과는 상관없으므로 cur→idx 값이 0 이하가 되도록 번경해야함
@@ -153,7 +163,7 @@ exit 코드를 분석할 필요가 있는데 결로적으로 exit 내부에서 �
 ---
 
 최종익스코드는 다음과 같다
-
+```python
     from pwn import *
     context(arch="amd64",os="linux",log_level="DEBUG")
     #p=remote("ctf.j0n9hyun.xyz",3040)
@@ -209,7 +219,7 @@ exit 코드를 분석할 필요가 있는데 결로적으로 exit 내부에서 �
     p.sendline(payload2)
     sleep(2)
     p.interactive()
-
+```
 
 
     

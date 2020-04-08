@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF childheap write-up"
 date:   2020-03-25 19:45:55
 image:  hackctf_childheap.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -173,7 +173,7 @@ Tags: report
     - DFB를 일으키기 좋은 청크를 하나더 malloc으로 생성해주고 4,0,4 순으로 해당 인덱스를 free 시킨다.
     - 우리가 원하는 건 0xb4080에 들어있는 값을 주소로하여 청크 재할당을 받는 것이다
 
-    ![]({{ site.baseurl }}/images/write-up/HackCTF/20childheap/Untitled%2015.png](HackCTF%20childheap/Untitled%2015.png)
+    ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20childheap/Untitled%2015.png)
 
     - 1번이 진행되면 0xb41160에 0xb41070이 들어간다.
     - 이제 2,3,4,가 진행되면 DFB로 0xb41070에 있는 값을 재할당 할수 있을것이다.

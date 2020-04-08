@@ -3,7 +3,7 @@ layout: post
 title:  "HacCTF babyheap write-up"
 date:   2020-03-18 19:45:55
 image:  hackctf_babyheap.PNG
-tags:   [Hackctf]
+tags:   [HackCTF]
 categories: [Write-up]
 ---
 
@@ -136,7 +136,7 @@ rax에는 현재 scanf로 입력한 ptr의 인덱스 값이 들어가 있다.
 
     일반적으로 fastbin에 들어가는 청크들은 특별한 경우를 제외하고는 병합을 하지 않는다는 특징이 있다. 또한 A라는 청크를 free시키고 연속으로 다시 A를 free시키면 내부 체크로직에 의해서 강제종료가 된다. (아래 사진이 코드임)
 
-    ![]({{ site.baseurl }}/images/write-up/HackCTF/ng](HackCTF%20babyheap/Untitled%209.png)
+    ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20babyheap/Untitled%209.png)
 
     하지만 A와 B 두개의 청크가 있을때 , free(A) → free(B) → free(A) 이렇게 free를 시키면 위 코드의 safety check 로직을 우회할수 있다.
 
