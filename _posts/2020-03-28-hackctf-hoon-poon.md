@@ -7,11 +7,6 @@ tags:   [HackCTF]
 categories: [Write-up]
 ---
 
-# [HackCTF] 훈폰정음
-
-Date: Feb 03, 2020
-Tags: report
-
 
 ### 1.  문제
 
@@ -23,7 +18,7 @@ Tags: report
 
 모든 보호기법이 다 걸려있다
 
-
+<br>
 
 **2) 문제 확인**
 
@@ -31,7 +26,7 @@ Tags: report
 
 1번부터 5번까지의 메뉴가 있다. 1번이 입력, 2번이 수정, 3번이 삭제, 4번이 확인 마지막 5번이 종료와 관련된 메뉴이다. 
 
-
+<br>
 
 **3) 코드흐름 파악**
 
@@ -45,7 +40,7 @@ Tags: report
 
     또한 입력할수 있는 사이즈는 최대 0x400이다. 이 조건을 만족해야지만 malloc이 수행되고, table[index] 배열에 저장된다
 
-
+<br>
 
 - **edit()**
 
@@ -53,7 +48,7 @@ Tags: report
 
     edit 함수역시 인덱스 0 ~ 6 값만 수정가능하고, 사이즈는 add()함수에서 입력한 값을 고정으로 하여 안의 내용물만 바꾼다. get_read함수를 이용하여 입력한다
 
-
+<br>
 
 - **delete()**
 
@@ -61,6 +56,7 @@ Tags: report
 
     count 전역변수는 초기값이 5인데 0이 되면 free가 안된다. 하지만 이상태에서 한번더 delete() 함수를 호출하면 음수값이 되므로 상관없다. 즉 free의 개수는 제한이 없다  
 
+<br>
 
 - **check()**
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_hoon/Untitled%206.png)
@@ -69,7 +65,7 @@ Tags: report
 
 
 
-
+<br><br><br>
 
 ### 2. 접근방법
 
@@ -84,13 +80,16 @@ Tags: report
 
 해당 문제를 풀기 전 tcache의 구조를 먼저 공부했기 때문에 DFB, tcache dup, tcache poisoning 을 이용해서 libc_base 주소를 leak한뒤 조지면 끝이다
 
+
+---
 - tcache 공부자료
 
     [Heap 기초4](https://www.notion.so/Heap-4-791f5e0030b444fb92487ce3b77e2c97)
-
+---
+<br>
 우리의 목적은 free 되 청크가 unsorted bin에 들어가게 하는 것이다. 그래야 해당 청크의 fd에 main_arena+88 의 주소가 들어가서 libc leak이 가능하기 때문이다.
 
-unsorted bin에 free청크를 넣는 방법은 크게 두가지이다.
+unsorted bin에 free청크를 넣는 방법은 크게 두가지이다.<br><br>
 
 1. large bin 사이즈 청크가 free될 시 tcache에 안들어가고 바로 unsorted bin에 들어감
 
@@ -100,7 +99,7 @@ unsorted bin에 free청크를 넣는 방법은 크게 두가지이다.
 
     ⇒ DFB를 이용해서 tcache 꽉채우기
 
-
+<br><br>
 
 - **첫번째 시나리오**
     1. ' childheap ' 문제에서 한것처럼 fake chunk로 size를 주작하여 large chunk free시키기
@@ -109,7 +108,7 @@ unsorted bin에 free청크를 넣는 방법은 크게 두가지이다.
     4. free_hook을 one_gadet으로 덮기
 
 
-
+<br><br><br>
 
 
 ### 3. 풀이
@@ -123,11 +122,11 @@ unsorted bin에 free청크를 넣는 방법은 크게 두가지이다.
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_hoon/Untitled%207.png)
 
     - 현재 add로 0번 인덱스에 0x20 사이즈 만큼 malloc을 한후, free(0), free(0)번이 일어난 상황이다
-    - 이 상태에서 edit() 함수로 0번인덱스를 선택하여 "\x58"를 삽입한다
+    - 이 상태에서 edit() 함수로 0번인덱스를 선택하여 "\x58"를 삽입한다<br><br>
 
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_hoon/Untitled%208.png)
 
-    - 끝에 한바이트가 0x58로 바꼇다. 이상태에서 add(0x20)을 한다면 0x5577034f4250을 청크헤더로 하는 청크를 재할당해주고 입력한 값은 0x5577034f4260에 들어갈 것이다
+    - 끝에 한바이트가 0x58로 바꼇다. 이상태에서 add(0x20)을 한다면 0x5577034f4250을 청크헤더로 하는 청크를 재할당해주고 입력한 값은 0x5577034f4260에 들어갈 것이다<br><br>
 
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_hoon/Untitled%209.png)
 
@@ -135,15 +134,18 @@ unsorted bin에 free청크를 넣는 방법은 크게 두가지이다.
 
     - table[1]은 재할당을 받았기 때문에  table[0]의 값과 동일하다.
     - 여기서 add(0x20)을 한번더 한다면 tcache에 0x5577034f3258이 있으므로 0x5577034f3248을 헤더로하는 청크를 반환해줄 것이다. 그리고 입력한 값은 0x5577034f3258에 들어가게 되는데, 여기에는 현재 아까 index(0)의 청크 사이즈인 0x31이 들어가 있다
-    - 따라서 해당 값을 변조해서 , free(0)를 하면 되는 것이다
+    - 따라서 해당 값을 변조해서 , free(0)를 하면 되는 것이다<br><br>
 
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_hoon/Untitled%2011.png)
 
     - add(0x20)으로 malloc을 하고 0x421을 입력한 상태이다. 값이 잘 들어갔고, table[0]을 free시키면 청크 사이즈를 0x421로 판단하여 tcache가 아닌, unsorted bin에 넣을 것이다
     - 하지만 현재 해당 청크를 그냥 free 시킨다면, top 청크와 0x20 크기 밖에 차이가 안난상태이므로 에러가 난다.
-    - 따라서 0x400 사이즈 청크를 하나 더 할당해주고 top 청크와이 거리를 맞추기 위해 적절한 오프셋을 페이로드 끝부분에 삽입해야 한다
+    - 따라서 0x400 사이즈 청크를 하나 더 할당해주고 top 청크와이 거리를 맞추기 위해 적절한 오프셋을 페이로드 끝부분에 삽입해야 한다  <br><br>
 
-```c    
+
+
+
+```md    
 gdb-peda$  x/150gx 0x5577034f4250
 0x5577034f4250:	0x0000000000000000	0x0000000000000421
 0x5577034f4260:	0x00005577034f4244	0x0000000000000010
@@ -222,19 +224,19 @@ gdb-peda$  x/150gx 0x5577034f4250
 ```    
    ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_hoon/Untitled%2012.png)
 
-   - delete(0)를 하면 원하던 대로 unsorted bin에 들어가고 fd에 main_arena+88의 주소가 들어가 있음.
+   - delete(0)를 하면 원하던 대로 unsorted bin에 들어가고 fd에 main_arena+88의 주소가 들어가 있음.<br><br>
 
 2. unsorted bin에 청크가 들어갔다면, check() 함수를 이용하여 fd값 즉, main_arena+88 값을 leak하기
     - 이건 check() 함수로 바로 leak하면 끝
 3. 이제는 그냥 free_hook 덮어서 one_gadget 실행시키면 됨
     - libc 2.27에서는 tcache 청크 재할당시 chunk size검사를 하지 않으므로  0x7f 이렇게 맞춰줄필요 없음
 
-
+<br><br><br>
 
 **2) 두번째 시나리오**
 
 1. unsorted bin에 청크를 삽입하는 다른 방법.
-```python
+``` python
 add(0,0x100,p64(0)+p64(0x10))
 add(1,0x10,"A")
 delete(0)
@@ -246,14 +248,16 @@ delete(0)
 delete(0)
 delete(0)
 ```
-    - add(0x100) 만큼 할당받고, 이것도 마찬가지로 top 청크 사이의 거리를 맞춰주기 위해 add(0x10)한번 더함
-    - 그다음 free를 8번 시키면 7개까지는 tcache로 들어가고, 마지막 free는 0x100 크기 이므로 unsorted bin에 들어감
+<br>
+- add(0x100) 만큼 할당받고, 이것도 마찬가지로 top 청크 사이의 거리를 맞춰주기 위해 add(0x10)한번 더함
+- 그다음 free를 8번 시키면 7개까지는 tcache로 들어가고, 마지막 free는 0x100 크기 이므로 unsorted bin에 들어감  <br><br>
 
-    ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_hoon/Untitled%2013.png)
+![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_hoon/Untitled%2013.png)
 
-2. 그다음은 첫번째 시나리오와 동일하게 진행하면 됨
+그다음은 첫번째 시나리오와 동일하게 진행하면 됨
 
 
+<br><br>
 
 최종 익스코드는 다음과 같다 (첫번째 시나리오 기준 익스 코드)
 ```python
@@ -334,13 +338,11 @@ delete(5)
 
 p.interactive()
 ```
-
-
-
+<br><br><br>
 
 ### 4. 몰랐던 개념
 
 ---
 
 - tcache 소스코드 분석을 하고 문제를 푸느라 오래걸렸다. 하지만 tcache와 관련된 문제는 쉽게 풀수 있을 것같다.
-- 현재 2.29 이후부터는 연속으로 free를 못하게 막아놨다. 추후에 glibc 2.29 버전과 관련된 문제를 풀때 다시한번 추가된 코드를 정리해야겠다
+- 현재 2.29 이후부터는 연속으로 free를 못하게 막아놨다. 추후에 glibc 2.29 버전과 관련된 문제를 s풀때 다시한번 추가된 코드를 정리해야겠다

