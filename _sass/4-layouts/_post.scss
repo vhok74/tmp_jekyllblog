@@ -142,15 +142,14 @@
     }
 
     .post__nav__image {
-      height: 50%;
-      width: 90%;
+      height: 30%;
+      width: 60%;
       margin: auto;
       display: block;
       margin-bottom: 40px;
       background-position: center;
       background-size: cover;
       background-repeat: no-repeat;
-      background: $light-gray;
       transition: .35s ease-in-out;
       &:hover {
         opacity: 0.9;

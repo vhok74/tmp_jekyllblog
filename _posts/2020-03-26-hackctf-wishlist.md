@@ -109,14 +109,14 @@ NX비트말곤 딱히 안걸려있다.
     2. free(0), free(1) 호출
     3. malloc을 한번더 호출한다면, 고정 사이즈이므로 ptr[1]에 malloc 된 청크를 재할당 받고 이는 ptr[3]에 저장됨. 
         - 현재 ptr[3]은 ptr[1] 청크를 재할당 받은 것이기 때문에 free(1)가 호출되고나서 fd에 ptr[0]에 담겼던 청크의 주소가 들어가있음
-        - 2번 메뉴로 index = 3을 선택하면 저 fd값이 leak되고 하위 2바이트를 & 연산으로 조져서 heap_base 주소를 알수 있음
-
+        - 2번 메뉴로 index = 3을 선택하면 저 fd값이 leak되고 하위 2바이트를 & 연산으로 조져서 heap_base 주소를 알수 있음  
+<br>
     4. 1번 메뉴로 "/bin/sh" 문자열 저장함
-        - 3번에서 구한 heap_base 주소를 이용해서 "/bin/sh"이 저장된 오프셋을 조질수 있음. 일단 알아두쟈
+        - 3번에서 구한 heap_base 주소를 이용해서 "/bin/sh"이 저장된 오프셋을 조질수 있음. 일단 알아두쟈<br><br>
 
     5. system 함수는 버퍼를 많이 사용하므로 1번 메뉴로 한 100개정도 malloc 조지기
     6. 1번 메뉴로 "pop rdi;ret; 주소" + "/bin/sh주소 " + "system함수"를 힙에 저장
-        - "/bin/sh" 주소는 3번에서 구한 heap_base + offset으로 넣어주면 됨
+        - "/bin/sh" 주소는 3번에서 구한 heap_base + offset으로 넣어주면 됨<br><br>
 
     7. sub_4008DA() 함수에서 0x20바이트를 다음과 같이 구성해서 ROP 진행
         - "A"*0x10+ "6번에서 입력한 페이로드 주소"(rbp 위치) +  "leave; ret; 가젯"(ret 위치)
@@ -160,7 +160,7 @@ NX비트말곤 딱히 안걸려있다.
 
     - 0x400b03 : pop rdi; ret 가젯
     - 0x23cd010 : "/bin/sh" 저장 주소
-    - 0x4006c0 : "system 함수 plt"<br><br>
+    - 0x4006c0 : "system 함수 plt"  <br><br><br>
 
 5. **시나리오7) sub_4008DA() 함수에서 0x20바이트를 다음과 같이 구성해서 ROP 진행**
     - "A"*0x10+ "6번에서 입력한 페이로드 주소"(rbp 위치) +  "leave; ret; 가젯"(ret 위치)
@@ -176,7 +176,7 @@ NX비트말곤 딱히 안걸려있다.
             pop rbp가 진행될때 해당 페이로드가 rbp로 들어가고, rsp가 +8 되면서 이때 페이로드의 
             실제 주소가 rsp에 들어가고 이 주소가 ret가 되는 이유 때문이다.
 
-    - ret위치에 0x4008d8 를 넣었는데 이는 "leave; ret;" 가젯 주소이다<br><br>
+    - ret위치에 0x4008d8 를 넣었는데 이는 "leave; ret;" 가젯 주소이다<br><br><br>
 
 6. **스택 피보팅으로 fake stack 조지기 !**
 
@@ -198,14 +198,14 @@ NX비트말곤 딱히 안걸려있다.
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20wishlist/Untitled%2015.png)
 
     - 다시 leave로 돌아왔다. 여기서 leave가 실행되면 rbp, rsp값이 둘다 0x12efce8이 될것이다
-    - 그리고 pop rbp가 진행되면서 rsp가 가리키는 값인 0x21이 rbp에 들어가고 rsp는 8증가해 0x12efcf0이 될 것이다<br><br>
+    - 그리고 pop rbp가 진행되면서 rsp가 가리키는 값인 0x21이 rbp에 들어가고 rsp는 8증가해 0x12efcf0이 될 것이다<br><br><br>
 
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20wishlist/Untitled%2016.png)
 
     - leave가 끝나면 현재 rbp에는 0x21이 들어가 있고 rsp는 0x12efcf0가 된다.
     - 스택을 확인해보자. 원래 0x7ff... 형태의 주소가 스택의 주소였는데, leave, ret; 가젯을 이용해서 가짜 스택 즉, 우리가 원하는 주소를 스택으로 사용할수 있게 되었다!
     - 이 주소는 우리가 1번 메뉴를 통해 할당받는 힙 주소들이다.
-    - ret가 진행되면 현재 rsp가 가리키는 값인 0x400b03가 rip들어갈 것이고, 이는 pop rdi 주소이다<br><br>
+    - ret가 진행되면 현재 rsp가 가리키는 값인 0x400b03가 rip들어갈 것이고, 이는 pop rdi 주소이다<br><br><br>
 
     ![]({{ site.baseurl }}/images/write-up/HackCTF/HackCTF%20wishlist/Untitled%2017.png)
 
@@ -213,7 +213,7 @@ NX비트말곤 딱히 안걸려있다.
 
 <br><br>
 
-최종 익스코드는 다음고 같다
+최종 익스코드는 다음과 같다
 ```python
 from pwn import *
 

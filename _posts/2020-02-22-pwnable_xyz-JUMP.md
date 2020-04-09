@@ -17,11 +17,15 @@ categories: [Write-up]
 
 스택 카나리를 제외하고 모든 기법이 다 걸려 있다
 
+<br>
+
 **2) 문제 확인**
 
 ![]({{ site.baseurl }}/images/write-up/pwnable_xyz/J_U_M_P/2.png)
 
 문제를 실행시키면 점프점프 거리면서 뭐라고 나온다. 3번 메뉴를 누르면 스택 주소처럼 보이는 주소가 출력이 된다. 해당 주소를 이용해서 뭐 어떻게 하는 것같다
+
+<br>
 
 **3) 코드 확인**
 
@@ -31,9 +35,13 @@ categories: [Write-up]
 
 read_int8() 함수로 입력을 받고, 1을 입력하면 rax에 들어있는 값으로 jmp를 하게되고 2를 입력하면 xor 연산을 한다. 마지막으로 3번을 입력하면 어떤 주소값을 출력해준다. 내가 입력할 수 있는 공간은 read_int8() 함수 밖에 없다. 해당 함수를 살펴보자.
 
+<br>
+
 ![]({{ site.baseurl }}/images/write-up/pwnable_xyz/J_U_M_P/4.png)
 
 자세히보면 buf는 rbp-0x20 공간에 할당되는데 입력받는 사이즈는 최대 0x21바이트이다.  해당 부분이 의심스럽다
+
+<br><br>
 
 ### 2. 접근방법
 
@@ -57,9 +65,13 @@ read_int8() 함수로 입력을 받고, 1을 입력하면 rax에 들어있는 �
 
 1번 메뉴를 이용하여 jmp rax가 실행된다. 그렇다면 rbp-0x8의 위치에 win 함수의 오프셋만 넣으면 된다.  원래 rbp-0x8의 위치에는 다음의 주소가 들어가있다.
 
+<br>
+
 ![]({{ site.baseurl }}/images/write-up/pwnable_xyz/J_U_M_P/5.png)
 
 0xba0의 오프셋이 들어간다. 따라서 하위 한바이트를 0x77로 변경하면 된다. 그렇다면 어떻게 변경을 해야할지 생각을 해봐야한다.  
+
+<br>
 
 ![]({{ site.baseurl }}/images/write-up/pwnable_xyz/J_U_M_P/6.png)
 
@@ -69,15 +81,21 @@ read_int8() 함수로 입력을 받고, 1을 입력하면 rax에 들어있는 �
 
 그럼 이제 마지막으로 read_int8의 rbp의 값을 변경해보자. 해당 rbp는 main 함수 스택프레임의 rbp를 가리키고 있기때문에 main rbp의 값이라고 하자.  3번 메뉴를 통하여 스택의 임의 주소가 leak이 된다고 했다.
 
+<br>
+
 ![]({{ site.baseurl }}/images/write-up/pwnable_xyz/J_U_M_P/7.png)
 
 leak된 주소에서 0xf8 크기 만큼 떨어진 곳에 rbp가 존재한다. 이 값을 이용하여 read_int8()함수에서  "A"*0x20+rbp(마지막한바이트+9) 를 입력하면 rbp의 한바이트가 현재 값에서 +9 만큼 증가된다.
 
 그다음 반복물을 돌고 다시 메뉴를 입력하게 되면 입력한 값이 rbp-0x11 이 아닌 rbp+9-0x11 (= rbp -0x8) 에 들어간다. 따라서 이 부분에 0x77을 입력하고, 카나리 조건문을 통과하기 위해 rbp를 원상복구 시켜야 한다. 이게 무슨 말이냐면
 
+<br>
+
 ![]({{ site.baseurl }}/images/write-up/pwnable_xyz/J_U_M_P/8.png)
 
 해당 코드는 메인문의 카나리 검사 로직인데 rbp가 변조가 된상태로 1번 메뉴를 실행하게 된다면 rbp-0x10을 가리키는 곳이 rbp+9-0x10이 되므로 조건에 맞지 않게 된다. 따라서 rbp를 다시 되돌려놔야 해당 조건을 만족하게 되고,  win 함수로 jmp를 할 수 있게 되는 것이다.
+
+<br><br>
 
 ### 3. 풀이
 
@@ -86,6 +104,8 @@ leak된 주소에서 0xf8 크기 만큼 떨어진 곳에 rbp가 존재한다. �
 최종 익스 코드는 다음과 같다
 
 ![]({{ site.baseurl }}/images/write-up/pwnable_xyz/J_U_M_P/9.png)
+
+<br><br>
 
 ### 4. 몰랐던 개념
 

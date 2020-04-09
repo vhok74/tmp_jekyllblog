@@ -196,8 +196,9 @@ result의 마지막 쉘코드가 si에 0xdef1을 복사하는 코드다. 따라�
 ### 3. 풀이
 
 ---
+- **첫번째 시나리오 코드(파일이름 찾기)** 
 
-- **첫번째 시나리오 코드(파일이름 찾기)**
+
 ```python
 from pwn import *
 #context.log_level="DEBUG"
@@ -241,12 +242,13 @@ write+="syscall"
 
 
 p.send(asm(open)+asm(getdents)+asm(write))
-p.interactive()
-```
+p.interactive()  
+```  
+<br><br>
 
-<br>
+-  **두번째 시나리오(플래그 출력)**  
 
-- **두번째 시나리오(플래그 출력)**
+
 ```python
 from pwn import *
 #context.log_level="DEBUG"
@@ -298,11 +300,11 @@ write+="syscall"
 
 p.send(asm(filename)+asm(open)+asm(read)+asm(write))
 p.interactive()
-```
+```  
+
+
 
 <br><br><br>
-
-
 ### 4. 몰랐던 개념
 
 ---
