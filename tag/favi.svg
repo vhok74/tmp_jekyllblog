@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="33.032" height="31.808" viewBox="0 0 27 26">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #31004a;
+        filter: url(#filter);
+      }
+
+      .cls-2 {
+        font-size: 26px;
+        fill: #fff;
+        font-family: YDIYGO360;
+      }
+    </style>
+    <filter id="filter" x="0" y="0" width="27" height="26" filterUnits="userSpaceOnUse">
+      <feFlood result="flood" flood-color="#55557d"/>
+      <feComposite result="composite" operator="in" in2="SourceGraphic"/>
+      <feBlend result="blend" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect id="사각형_1" data-name="사각형 1" class="cls-1" width="27" height="26"/>
+  <text id="J" class="cls-2" x="7.25" y="20.25">J</text>
+</svg>
