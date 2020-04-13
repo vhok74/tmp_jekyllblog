@@ -4,7 +4,7 @@ layout: default
 <div class="container" style="margin-top: 70px;">
 	<div class="row">
 		<div class="col col-12">
-			{% if site.posts.size > 0 %}
+			{% if site.collections.size > 0 %}
 				{% for page2 in site.pages %}
 					{% if page2.url == page.url %}
 						<h4 class="lates-title"><strong>{{page2.title}}</strong></h4>
@@ -17,11 +17,21 @@ layout: default
 
 <div class="container">
 	<div class="row">
-	  	{% assign category = page.category | default: page.title %}
-  		{% for post in site.categories[category] %}
-			{% include article-content.html %}
-		{% endfor %}
-
+		{% assign category = page.category | default: page.title %}
+		{% if category == 'Computer' %}
+			{% for post in site.computer %}
+				{% include article-content.html %}
+			{% endfor %}
+		{% endif %}
+		{% if category == 'Security' %}
+			{% for post in site.security %}
+				{% include article-content.html %}
+			{% endfor %}
+		{% endif %}
+		{% if category == 'Write-up' %}
+			{% for post in site.write-up %}
+				{% include article-content.html %}
+			{% endfor %}
+		{% endif %}
 	</div>
 </div>
-

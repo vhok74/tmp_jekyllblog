@@ -4,4 +4,5 @@ gem "jekyll"
 gem "jekyll-paginate"
 gem 'jekyll-tagging'
 gem "jekyll-sitemap"
+gem 'jekyll-paginate-categories'
 gem "jekyll-admin", group: :jekyll_plugins

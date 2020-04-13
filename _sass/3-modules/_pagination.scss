@@ -1,69 +1,37 @@
+/* Pagination */
 .pagination {
-  margin: 20px 0 40px;
-  padding: 40px 0;
-  text-align: center;
+  margin-top: 40px;
 
   @media only screen and (max-width: $mobile) {
-    margin: 0 0 20px;
+    margin-top: 0;
   }
 }
 
 .pagination__list {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  text-align: center;
 
-  .next-link,
   .previous-link,
-  .disabled {
+  .next-link,
+  .prev-disabled,
+  .next-disabled {
     display: inline-block;
-    width: 140px;
-    height: 50px;
-    line-height: 50px;
-    font-size: 12px;
-    letter-spacing: 1px;
+    color: #212121;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 700;
     text-transform: uppercase;
-    transition: all .35s;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .15);
-    background: $white;
+    letter-spacing: 5px;
+    border-right: 1px solid #eee;
   }
 
   .next-link,
-  .previous-link {
-    color: $dark;
+  .next-disabled {
 
-    &:hover {
-      color: $black;
-    }
+    border-right: none;
   }
 
-  .disabled {
-    color: $gray;
-    cursor: not-allowed;
+  .prev-disabled,
+  .next-disabled  {
+    color: #c6c6c6;
   }
-
-  .counter-box {
-    
-    a, span {
-      padding: 0 5px;
-      font-size: 15px;
-      color: $dark;
-    }
-
-    .active-link {
-      font-weight: 700;
-    }
-  }
-
-  @media only screen and (max-width: $mobile) {
-    flex-direction: column;
-
-    .next-link,
-    .previous-link,
-    .disabled {
-      margin: 10px 0;
-    }
-
-  }
-
 }

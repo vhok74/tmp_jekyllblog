@@ -1,14 +1,21 @@
-<!-- begin footer -->
-<footer class="footer">
-  <div class="container">
 
-<!--    {% include subscribe.html %}-->
-<!--    -->
-<!--    {% include instagram.html %}-->
-
-<!--    {% include contact-link.html %}-->
-
-    <div class="copyright">Copyright &copy; {{site.time | date: '%Y'}} <a href="/">{{ site.data.settings.title }}</a> — All right Reserved. Power by <a href="https://jekyllrb.com/">Jekyll</a>.</div>
+<div class="container">
+  <div class="row">
+    <div class="col col-12">
+      <!-- begin footer -->
+      {% if site.data.settings.footer-image %}
+        <footer class="footer footer-image" style="background-image: url('/images/thumbnail/14.jpg');margin-top: 150px;">
+          {% include contact-link.html %}
+            <div class="copyright wow fadeInUp" data-wow-delay=".2s">{{site.time | date: '%Y'}} &copy; <a href="/" class="copyright__link">{% if site.title %}{{site.title}}{% else %}Reked Theme{% endif %}</a>. Crafted & Designed by <a href="https://artemsheludko.github.io" class="copyright__link">Artem Sheludko</a>.</div>
+        </footer>
+      {% else %}
+        <footer class="footer">
+          {% include contact-link.html %}
+            <div class="copyright wow fadeInUp" data-wow-delay=".2s">{{site.time | date: '%Y'}} &copy; <a href="/" class="copyright__link">{% if site.title %}{{site.title}}{% else %}Reked Theme{% endif %}</a>. Crafted & Designed by <a
+              href="https://artemsheludko.github.io" class="copyright__link">Artem Sheludko</a>.</div>
+        </footer>
+      {% endif %}
+      <!-- end footer -->
+    </div>
+  </div>
 </div>
-</footer>
-<!-- end footer -->

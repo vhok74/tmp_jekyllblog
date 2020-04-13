@@ -17,12 +17,10 @@
   <script src="/js/highlight.pack.js"></script>
   <script>hljs.initHighlightingOnLoad();</script>
 
-
-
   <style>
-  {% capture include_to_scssify %}
+    {% capture include_to_scssify %}
     {% include main.scss %}
-  {% endcapture %}
-  {{ include_to_scssify | scssify }}
+    {% endcapture %}
+    {{ include_to_scssify | scssify }}
   </style>
 </head>

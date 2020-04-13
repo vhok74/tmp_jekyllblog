@@ -12,7 +12,7 @@ plugins:
   - jekyll/tagging
 
 
-paginate: 5
+paginate: 7
 paginate_path: "/page/:num"
 
 
@@ -33,8 +33,18 @@ tag_page_layout:      tag_page
 #tag_permalink_style:  pretty
 
 #Catagories
-category_dir: category
+category_dir: 'category'
 
+category_layout: "index.html"
+
+collections_dir: my_collections
+collections:
+  computer:
+    output: true
+  write-up:
+    output: true
+  security:
+    output: true
 sass:
   sass_dir: _sass
   style: compressed
